@@ -14,7 +14,7 @@ public class OTPService {
     // Lưu OTP: email -> {otp + expiredAt}
     private final Map<String, OtpData> otpStorage = new ConcurrentHashMap<>();
 
-    private static final int EXPIRE_MINUTES = 5; // OTP hết hạn sau 5 phút
+    private static final int EXPIRE_MINUTES = 2;
 
     public String generateOtp(String email) {
         int otp = 100000 + random.nextInt(900000);
