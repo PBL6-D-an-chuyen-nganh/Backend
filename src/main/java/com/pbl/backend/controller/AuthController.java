@@ -22,95 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
-//@RestController
-//@RequestMapping("/api/v1/auth/")
-//public class AuthController {
-//
-//    @Autowired
-//    private JwtTokenHelper jwtTokenHelper;
-//
-//    @Autowired
-//    private UserDetailsService userDetailsService;
-//
-//    @Autowired
-//    private AuthenticationManager authenticationManager;
-//
-//    @Autowired
-//    private UserService userService;
-//
-//    @Autowired
-//    private UserRepository userRepo;
-//
-//    // Đăng nhập -> tạo JWT token
-//    @PostMapping("/login")
-//    public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest request) throws Exception {
-//        this.authenticate(request.getEmail(), request.getPassword());
-//
-//        UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getEmail());
-//        User user = this.userRepo.findByEmail(request.getEmail());
-////                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
-//
-//        String token = this.jwtTokenHelper.generateToken(userDetails, user.getUserId());
-//
-//        JwtAuthResponse response = new JwtAuthResponse();
-//        response.setToken(token);
-//        response.setUser(UserDTO.fromEntity(user));
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
-//
-//    private void authenticate(String email, String password) throws Exception {
-//        UsernamePasswordAuthenticationToken authenticationToken =
-//                new UsernamePasswordAuthenticationToken(email, password);
-//        try {
-//            this.authenticationManager.authenticate(authenticationToken);
-//        } catch (BadCredentialsException e) {
-//            throw new RuntimeException("Invalid email or password !!");
-//        }
-//    }
-//
-//    // Đăng ký user mới
-//    @PostMapping("/register")
-//    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody JwtAuthRequest request) {
-//        System.out.println("=== REGISTER ENDPOINT CALLED ===");
-//        System.out.println("Email: " + request.getEmail());
-//
-//        try {
-//            UserDTO userDTO = new UserDTO();
-//            userDTO.setEmail(request.getEmail());
-//            userDTO.setRole("ROLE_USER");
-//            userDTO.setAuthStatus("ACTIVE");
-//
-//            UserDTO registeredUser = this.userService.registerNewUser(userDTO, request.getPassword());
-//            return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-//        } catch (Exception e) {
-//            System.out.println("Error in register: " + e.getMessage());
-//            e.printStackTrace();
-//            throw e;
-//        }
-//    }
-//
-//    // Lấy user hiện tại từ token
-//    @GetMapping("/current-user")
-//    public ResponseEntity<?> getUser(Principal principal) {
-//        if (principal == null) {
-//            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
-//        }
-//        User user = this.userRepo.findByEmail(principal.getName());
-////                .orElseThrow(() -> new RuntimeException("User not found with email: " + principal.getName()));
-//        return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.OK);
-//    }
-//
-//    // Logout (invalidate token)
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
-//        if (token != null && token.startsWith("Bearer ")) {
-//            token = token.substring(7);
-//            jwtTokenHelper.invalidateToken(token); // Cần implement trong JwtTokenHelper
-//        }
-//        return new ResponseEntity<>("Successfully logged out", HttpStatus.OK);
-//    }
-//}
 @RestController
 @RequestMapping("/api/v1/auth/")
 public class AuthController {
@@ -131,10 +42,10 @@ public class AuthController {
     private UserRepository userRepo;
 
     @Autowired
-    private OTPService otpService; // Service tự tạo để sinh OTP, lưu và verify
+    private OTPService otpService;
 
     @Autowired
-    private EmailService mailService; // Service gửi mail
+    private EmailService mailService;
 
     // Đăng nhập -> tạo JWT token
     @PostMapping("/login")
@@ -163,33 +74,49 @@ public class AuthController {
         }
     }
 
-    // Đăng ký user mới -> gửi OTP
+    // Đăng ký user mới -> tạo user INACTIVE + gửi OTP
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody JwtAuthRequest request) {
+        // tạo user với trạng thái INACTIVE
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(request.getEmail());
+        userDTO.setRole("ROLE_USER");
+        userDTO.setAuthStatus("INACTIVE");
+
+        // lưu user với password, trạng thái ban đầu là INACTIVE
+        userService.registerNewUser(userDTO, request.getPassword());
+
+        // sinh OTP & gửi email
         String otp = otpService.generateOtp(request.getEmail());
         mailService.sendOtpEmail(request.getEmail(), otp);
-        return new ResponseEntity<>("OTP sent to email. Please verify.", HttpStatus.OK);
+
+        return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
     }
 
-    // Verify OTP -> tạo tài khoản
+    // Verify OTP -> nếu đúng thì update user thành ACTIVE
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp,
-                                       @RequestParam String password) {
+    public ResponseEntity<?> verifyOtp(@RequestParam String email,
+                                       @RequestParam String otp) {
         boolean isValid = otpService.verifyOtp(email, otp);
 
         if (!isValid) {
             return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
         }
 
-        // OTP đúng -> tạo user
-        UserDTO userDTO = new UserDTO();
-        userDTO.setEmail(email);
-        userDTO.setRole("ROLE_USER");
-        userDTO.setAuthStatus("ACTIVE");
+        // OTP hợp lệ -> update trạng thái ACTIVE
+        User user = userRepo.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
 
-        UserDTO registeredUser = this.userService.registerNewUser(userDTO, password);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        user.setAuthStatus("ACTIVE");
+        userRepo.save(user); // lưu lại thay đổi
+
+        UserDTO updatedUser = UserDTO.fromEntity(user);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
+
+
 
     // Lấy user hiện tại từ token
     @GetMapping("/current-user")
@@ -206,7 +133,7 @@ public class AuthController {
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
-            jwtTokenHelper.invalidateToken(token); // Cần implement trong JwtTokenHelper
+            jwtTokenHelper.invalidateToken(token);
         }
         return new ResponseEntity<>("Successfully logged out", HttpStatus.OK);
     }
