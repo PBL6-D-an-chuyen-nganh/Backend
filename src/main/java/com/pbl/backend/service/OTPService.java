@@ -1,5 +1,8 @@
 package com.pbl.backend.service;
 
+import com.pbl.backend.model.Verification;
+import com.pbl.backend.repository.VerificationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -9,62 +12,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OTPService {
-    private final Random random = new Random();
+    @Autowired
+    private VerificationRepository verificationRepository;
+    private static final int EXPIRATION_MINUTES = 2;
 
-    // Lưu OTP: email -> {otp + expiredAt}
-    private final Map<String, OtpData> otpStorage = new ConcurrentHashMap<>();
-
-    private static final int EXPIRE_MINUTES = 2;
-
-    public String generateOtp(String email) {
-        int otp = 100000 + random.nextInt(900000);
+    public String generateOTP(String email) {
+        int otp = 100000 + new Random().nextInt(900000);
         String otpStr = String.valueOf(otp);
 
-        // Lưu OTP + thời gian hết hạn
-        otpStorage.put(email, new OtpData(otpStr, LocalDateTime.now().plusMinutes(EXPIRE_MINUTES)));
-
+        Verification verification = new Verification();
+        verification.setEmail(email);
+        verification.setOtp(otpStr);
+        verification.setExpiredAt(LocalDateTime.now().plusMinutes(EXPIRATION_MINUTES));
+        verificationRepository.save(verification);
         return otpStr;
     }
 
     public boolean verifyOtp(String email, String otp) {
-        if (!otpStorage.containsKey(email)) {
-            return false;
-        }
-
-        OtpData data = otpStorage.get(email);
-
-        // Check expired
-        if (LocalDateTime.now().isAfter(data.getExpiredAt())) {
-            otpStorage.remove(email); // Xóa khi hết hạn
-            return false;
-        }
-
-        // Check match
-        boolean isValid = data.getOtp().equals(otp);
-
-        if (isValid) {
-            otpStorage.remove(email); // Xóa luôn sau khi dùng
-        }
-
-        return isValid;
-    }
-
-    // Class nội bộ để lưu OTP + expiredAt
-    private static class OtpData {
-        private final String otp;
-        private final LocalDateTime expiredAt;
-
-        public OtpData(String otp, LocalDateTime expiredAt) {
-            this.otp = otp;
-            this.expiredAt = expiredAt;
-        }
-
-        public String getOtp() {
-            return otp;
-        }
-
-        public LocalDateTime getExpiredAt() {
-            return expiredAt;
-        }
+        return verificationRepository.findByEmail(email)
+                .filter(v -> LocalDateTime.now().isBefore(v.getExpiredAt()))
+                .filter(v -> v.getOtp().equals(otp))
+                .map(v -> {
+                    verificationRepository.delete(v);
+                    return true;
+                })
+                .orElse(false);
     }
 }

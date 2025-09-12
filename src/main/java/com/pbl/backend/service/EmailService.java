@@ -20,7 +20,6 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject("Your OTP Code");
 
-            // Nội dung HTML
             String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>"
                     + "<div style='max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>"
                     + "<h2 style='color: #333;'>Your OTP Code</h2>"

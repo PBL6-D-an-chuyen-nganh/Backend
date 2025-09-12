@@ -74,7 +74,7 @@ public class AuthController {
         }
     }
 
-    // Đăng ký user mới -> tạo user INACTIVE + gửi OTP
+    // tạo user INACTIVE + gửi OTP
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody JwtAuthRequest request) {
         // tạo user với trạng thái INACTIVE
@@ -83,17 +83,16 @@ public class AuthController {
         userDTO.setRole("ROLE_USER");
         userDTO.setAuthStatus("INACTIVE");
 
-        // lưu user với password, trạng thái ban đầu là INACTIVE
         userService.registerNewUser(userDTO, request.getPassword());
 
         // sinh OTP & gửi email
-        String otp = otpService.generateOtp(request.getEmail());
+        String otp = otpService.generateOTP(request.getEmail());
         mailService.sendOtpEmail(request.getEmail(), otp);
 
         return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
     }
 
-    // Verify OTP -> nếu đúng thì update user thành ACTIVE
+    // Verify OTP -> update user ACTIVE
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestParam String email,
                                        @RequestParam String otp) {
@@ -103,7 +102,7 @@ public class AuthController {
             return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
         }
 
-        // OTP hợp lệ -> update trạng thái ACTIVE
+        // OTP hợp lệ -> update ACTIVE
         User user = userRepo.findByEmail(email);
         if (user == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
@@ -115,8 +114,6 @@ public class AuthController {
         UserDTO updatedUser = UserDTO.fromEntity(user);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
-
-
 
     // Lấy user hiện tại từ token
     @GetMapping("/current-user")
@@ -137,4 +134,5 @@ public class AuthController {
         }
         return new ResponseEntity<>("Successfully logged out", HttpStatus.OK);
     }
+
 }
