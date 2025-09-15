@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OTPService {
@@ -30,12 +28,18 @@ public class OTPService {
 
     public boolean verifyOtp(String email, String otp) {
         return verificationRepository.findByEmail(email)
-                .filter(v -> LocalDateTime.now().isBefore(v.getExpiredAt()))
-                .filter(v -> v.getOtp().equals(otp))
                 .map(v -> {
-                    verificationRepository.delete(v);
-                    return true;
+                    if (LocalDateTime.now().isAfter(v.getExpiredAt())) {
+                        verificationRepository.delete(v);
+                        return false;
+                    }
+                    if (v.getOtp().equals(otp)) {
+                        verificationRepository.delete(v);
+                        return true;
+                    }
+                    return false;
                 })
                 .orElse(false);
     }
+
 }
