@@ -73,4 +73,9 @@ public class UserService {
                 ));
         userRepo.delete(user);
     }
+
+    public void updatePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+    }
 }

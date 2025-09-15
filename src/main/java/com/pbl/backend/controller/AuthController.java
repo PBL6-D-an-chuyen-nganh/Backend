@@ -77,7 +77,6 @@ public class AuthController {
     // tạo user INACTIVE + gửi OTP
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody JwtAuthRequest request) {
-        // tạo user với trạng thái INACTIVE
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail(request.getEmail());
         userDTO.setRole("ROLE_USER");
@@ -134,5 +133,40 @@ public class AuthController {
         }
         return new ResponseEntity<>("Successfully logged out", HttpStatus.OK);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        User user = userRepo.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
+        }
+
+        // sinh OTP và gửi email
+        String otp = otpService.generateOTP(email);
+        mailService.sendOtpEmail(email, otp);
+
+        return new ResponseEntity<>("OTP has been sent to your email for password reset.", HttpStatus.OK);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String email,
+                                           @RequestParam String otp,
+                                           @RequestParam String newPassword) {
+        boolean isValid = otpService.verifyOtp(email, otp);
+
+        if (!isValid) {
+            return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userRepo.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        userService.updatePassword(user, newPassword);
+
+        return new ResponseEntity<>("Password has been successfully reset.", HttpStatus.OK);
+    }
+
 
 }
