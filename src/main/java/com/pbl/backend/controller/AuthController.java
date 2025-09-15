@@ -1,8 +1,6 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.JwtAuthRequest;
-import com.pbl.backend.dto.JwtAuthResponse;
-import com.pbl.backend.dto.UserDTO;
+import com.pbl.backend.dto.*;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
 import com.pbl.backend.security.JwtTokenHelper;
@@ -91,24 +89,21 @@ public class AuthController {
         return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
     }
 
-    // Verify OTP -> update user ACTIVE
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestParam String email,
-                                       @RequestParam String otp) {
-        boolean isValid = otpService.verifyOtp(email, otp);
+    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtp());
 
         if (!isValid) {
             return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
         }
 
-        // OTP hợp lệ -> update ACTIVE
-        User user = userRepo.findByEmail(email);
+        User user = userRepo.findByEmail(request.getEmail());
         if (user == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
         user.setAuthStatus("ACTIVE");
-        userRepo.save(user); // lưu lại thay đổi
+        userRepo.save(user);
 
         UserDTO updatedUser = UserDTO.fromEntity(user);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
@@ -135,35 +130,33 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        User user = userRepo.findByEmail(email);
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        User user = userRepo.findByEmail(request.getEmail());
         if (user == null) {
             return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
         }
 
-        // sinh OTP và gửi email
-        String otp = otpService.generateOTP(email);
-        mailService.sendOtpEmail(email, otp);
+        String otp = otpService.generateOTP(request.getEmail());
+        mailService.sendOtpEmail(request.getEmail(), otp);
 
         return new ResponseEntity<>("OTP has been sent to your email for password reset.", HttpStatus.OK);
     }
 
+
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestParam String email,
-                                           @RequestParam String otp,
-                                           @RequestParam String newPassword) {
-        boolean isValid = otpService.verifyOtp(email, otp);
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtp());
 
         if (!isValid) {
             return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
         }
 
-        User user = userRepo.findByEmail(email);
+        User user = userRepo.findByEmail(request.getEmail());
         if (user == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
-        userService.updatePassword(user, newPassword);
+        userService.updatePassword(user, request.getNewPassword());
 
         return new ResponseEntity<>("Password has been successfully reset.", HttpStatus.OK);
     }
