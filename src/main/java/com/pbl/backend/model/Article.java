@@ -26,6 +26,8 @@ public class Article {
 
     private String category;
 
+    private String imageUrl;
+
     private Integer categoryID;
 
     private LocalDateTime createdAt;
