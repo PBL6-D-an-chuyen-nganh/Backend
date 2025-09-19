@@ -16,8 +16,8 @@ public class JwtTokenHelper {
 
     public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
-    private Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private Set<String> invalidatedTokens = new HashSet<>();
+    private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private final Set<String> invalidatedTokens = new HashSet<>();
 
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
@@ -37,28 +37,39 @@ public class JwtTokenHelper {
         return expiration.before(new Date());
     }
 
+    // 🔹 Tạo token, chứa cả email (subject) và userId
     public String generateToken(UserDetails userDetails, Integer userId) {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, userDetails.getUsername(), userId);
     }
+
+    // 🔹 Lấy userId từ token
     public Integer getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> Integer.parseInt(claims.get("userId").toString()));
+    }
+
+    // 🔹 Lấy username (email) từ token
+    public String getUsernameFromToken(String token) {
+        return getClaimFromToken(token, Claims::getSubject);
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject, Integer userId) {
         claims.put("userId", userId); // Thêm userId vào claims
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
+                .setSubject(subject) // subject = email/username
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(secretKey)
                 .compact();
     }
 
+    // 🔹 Validate token
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final Integer userId = getUserIdFromToken(token);
-        return (userId.equals(userDetails.getUsername()) && !isTokenExpired(token) && !invalidatedTokens.contains(token));
+        final String username = getUsernameFromToken(token);
+        return (username.equals(userDetails.getUsername())
+                && !isTokenExpired(token)
+                && !invalidatedTokens.contains(token));
     }
 
     public void invalidateToken(String token) {

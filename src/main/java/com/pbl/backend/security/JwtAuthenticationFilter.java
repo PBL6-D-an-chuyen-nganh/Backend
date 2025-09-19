@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -54,10 +53,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = requestToken.substring(7);
-        Integer userId = null;
+        String username = null;
 
         try {
-            userId = this.jwtTokenHelper.getUserIdFromToken(token);
+            username = this.jwtTokenHelper.getUsernameFromToken(token);
         } catch (IllegalArgumentException e) {
             System.out.println("Unable to get Jwt token");
         } catch (ExpiredJwtException e) {
@@ -67,8 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Nếu token hợp lệ → set authentication
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.customUserDetailService.loadUserById(userId);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.customUserDetailService.loadUserByUsername(username);
 
             if (this.jwtTokenHelper.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
@@ -82,7 +81,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
-
 
 }

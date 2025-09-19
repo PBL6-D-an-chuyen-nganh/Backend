@@ -18,6 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Inheritance(strategy = InheritanceType.JOINED) // 👈 quan trọng
 public class User implements UserDetails {
 
     @Id
@@ -42,10 +43,6 @@ public class User implements UserDetails {
 
     private String authStatus;
 
-    public User orElseThrow(Object o) {
-        return null;
-    }
-
     public enum Role {
         ROLE_USER,
         ROLE_ADMIN,
@@ -63,4 +60,20 @@ public class User implements UserDetails {
         return this.email;
     }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
