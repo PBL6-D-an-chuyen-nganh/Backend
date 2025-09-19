@@ -1,24 +1,22 @@
 package com.pbl.backend.controller;
 
+import com.pbl.backend.dto.PagedResponse;
 import com.pbl.backend.model.Article;
 import com.pbl.backend.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/articles/")
+@RequestMapping("/api/articles")
 public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
 
     @GetMapping
-    public ResponseEntity<Page<Article>> getArticles(
+    public ResponseEntity<PagedResponse<Article>> getArticles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -29,10 +27,21 @@ public class ArticleController {
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Article> articles = articleService.getArticles(pageable);
-        return ResponseEntity.ok(articles);
+
+        PagedResponse<Article> response = new PagedResponse<>(
+                articles.getContent(),
+                articles.getNumber(),
+                articles.getSize(),
+                articles.getTotalElements(),
+                articles.getTotalPages(),
+                articles.isLast()
+        );
+
+        return ResponseEntity.ok(response);
     }
+
     @GetMapping("/category/{categoryID}")
-    public ResponseEntity<Page<Article>> getArticlesByCategory(
+    public ResponseEntity<PagedResponse<Article>> getArticlesByCategory(
             @PathVariable Integer categoryID,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -44,7 +53,16 @@ public class ArticleController {
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Article> articles = articleService.getArticlesByCategory(categoryID, pageable);
-        return ResponseEntity.ok(articles);
-    }
 
+        PagedResponse<Article> response = new PagedResponse<>(
+                articles.getContent(),
+                articles.getNumber(),
+                articles.getSize(),
+                articles.getTotalElements(),
+                articles.getTotalPages(),
+                articles.isLast()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }
