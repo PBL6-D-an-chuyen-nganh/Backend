@@ -26,5 +26,7 @@ public class Article {
 
     private String category;
 
+    private Integer categoryID;
+
     private LocalDateTime createdAt;
 }

@@ -5,6 +5,7 @@ import com.pbl.backend.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,4 +16,9 @@ public class ArticleService {
     public Page<Article> getArticles(Pageable pageable) {
         return articleRepository.findAll(pageable);
     }
+
+    public Page<Article> getArticlesByCategory(Integer categoryID, Pageable pageable) {
+        return articleRepository.findByCategoryID(categoryID, pageable);
+    }
+
 }

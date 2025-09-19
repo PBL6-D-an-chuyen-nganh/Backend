@@ -19,18 +19,32 @@ public class ArticleController {
 
     @GetMapping
     public ResponseEntity<Page<Article>> getArticles(
-            @RequestParam(defaultValue = "0") int page,      // số trang (bắt đầu từ 0)
-            @RequestParam(defaultValue = "10") int size,     // số phần tử mỗi trang
-            @RequestParam(defaultValue = "createdAt") String sortBy, // cột để sort
-            @RequestParam(defaultValue = "desc") String sortDir      // asc hoặc desc
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
     ) {
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
-
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Article> articles = articleService.getArticles(pageable);
-
         return ResponseEntity.ok(articles);
     }
+    @GetMapping("/category/{categoryID}")
+    public ResponseEntity<Page<Article>> getArticlesByCategory(
+            @PathVariable Integer categoryID,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Article> articles = articleService.getArticlesByCategory(categoryID, pageable);
+        return ResponseEntity.ok(articles);
+    }
+
 }
