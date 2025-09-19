@@ -72,22 +72,23 @@ public class AuthController {
         }
     }
 
-    // tạo user INACTIVE + gửi OTP
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody JwtAuthRequest request) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest request) {
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail(request.getEmail());
+        userDTO.setName(request.getName());
+        userDTO.setPhoneNumber(request.getPhoneNumber());
         userDTO.setRole("ROLE_USER");
         userDTO.setAuthStatus("INACTIVE");
 
         userService.registerNewUser(userDTO, request.getPassword());
 
-        // sinh OTP & gửi email
         String otp = otpService.generateOTP(request.getEmail());
         mailService.sendOtpEmail(request.getEmail(), otp);
 
         return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
     }
+
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
@@ -160,6 +161,5 @@ public class AuthController {
 
         return new ResponseEntity<>("Password has been successfully reset.", HttpStatus.OK);
     }
-
 
 }
