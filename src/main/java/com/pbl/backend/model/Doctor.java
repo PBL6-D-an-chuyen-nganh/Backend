@@ -23,5 +23,9 @@ public class Doctor extends User {
     @Column(length = 1000)
     private String introduction;
 
+    private String position;
+
+    private String degree;
+
     private String avatarFilepath;
 }
