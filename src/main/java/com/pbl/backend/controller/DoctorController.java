@@ -1,11 +1,45 @@
 package com.pbl.backend.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.pbl.backend.dto.DoctorDTO;
+import com.pbl.backend.dto.PagedResponse;
+import com.pbl.backend.model.Doctor;
+import com.pbl.backend.service.DoctorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/doctors")
-
 public class DoctorController {
 
+    @Autowired
+    private DoctorService doctorService;
+
+    @GetMapping
+    public ResponseEntity<PagedResponse<DoctorDTO>> getDoctors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "userId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<DoctorDTO> doctors = doctorService.getDoctors(pageable);
+
+        PagedResponse<DoctorDTO> response = new PagedResponse<>(
+                doctors.getContent(),
+                doctors.getNumber(),
+                doctors.getSize(),
+                doctors.getTotalElements(),
+                doctors.getTotalPages(),
+                doctors.isLast()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }
