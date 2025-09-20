@@ -27,7 +27,7 @@ public class OTPService {
     }
 
     public boolean verifyOtp(String email, String otp) {
-        return verificationRepository.findByEmail(email)
+        return verificationRepository.findTopByEmailOrderByExpiredAtDesc(email)
                 .map(v -> {
                     if (LocalDateTime.now().isAfter(v.getExpiredAt())) {
                         verificationRepository.delete(v);
@@ -41,8 +41,8 @@ public class OTPService {
                 })
                 .orElse(false);
     }
+
     public void clearOtp(String email) {
         verificationRepository.findByEmail(email).ifPresent(verificationRepository::delete);
     }
-
 }

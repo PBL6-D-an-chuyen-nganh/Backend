@@ -74,19 +74,29 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest request) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setEmail(request.getEmail());
-        userDTO.setName(request.getName());
-        userDTO.setPhoneNumber(request.getPhoneNumber());
-        userDTO.setRole("ROLE_USER");
-        userDTO.setAuthStatus("INACTIVE");
+        User user = userRepo.findByEmail(request.getEmail());
+        if (user == null) {
+            UserDTO userDTO = new UserDTO();
+            userDTO.setEmail(request.getEmail());
+            userDTO.setName(request.getName());
+            userDTO.setPhoneNumber(request.getPhoneNumber());
+            userDTO.setRole("ROLE_USER");
+            userDTO.setAuthStatus("INACTIVE");
 
-        userService.registerNewUser(userDTO, request.getPassword());
+            userService.registerNewUser(userDTO, request.getPassword());
 
-        String otp = otpService.generateOTP(request.getEmail());
-        mailService.sendOtpEmail(request.getEmail(), otp);
+            String otp = otpService.generateOTP(request.getEmail());
+            mailService.sendOtpEmail(request.getEmail(), otp);
 
-        return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
+            return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
+        }
+        if (user.getAuthStatus().equals("INACTIVE")) {
+            otpService.clearOtp(request.getEmail());
+            String otp = otpService.generateOTP(request.getEmail());
+            mailService.sendOtpEmail(request.getEmail(), otp);
+            return new ResponseEntity<>("User already exists with INACTIVE status. New OTP sent to email.", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("User already exists with ACTIVE status. Please login.", HttpStatus.BAD_REQUEST);
     }
 
 
