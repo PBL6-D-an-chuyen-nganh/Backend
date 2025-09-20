@@ -17,6 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 
@@ -72,10 +75,30 @@ public class AuthController {
         }
     }
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest request) {
-        User user = userRepo.findByEmail(request.getEmail());
-        if (user == null) {
+        try {
+            User user = userRepo.findByEmail(request.getEmail());
+            if (user != null) {
+                // Xử lý user đã tồn tại
+                if ("INACTIVE".equals(user.getAuthStatus())) {
+                    otpService.clearOtp(request.getEmail());
+                    String otp = otpService.generateOTP(request.getEmail());
+                    mailService.sendOtpEmail(request.getEmail(), otp);
+                    return new ResponseEntity<>(
+                            "User already exists with INACTIVE status. New OTP sent to email.",
+                            HttpStatus.OK
+                    );
+                }
+                return new ResponseEntity<>(
+                        "User already exists with ACTIVE status. Please login.",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Tạo user mới
             UserDTO userDTO = new UserDTO();
             userDTO.setEmail(request.getEmail());
             userDTO.setName(request.getName());
@@ -84,19 +107,34 @@ public class AuthController {
             userDTO.setAuthStatus("INACTIVE");
 
             userService.registerNewUser(userDTO, request.getPassword());
-
             String otp = otpService.generateOTP(request.getEmail());
             mailService.sendOtpEmail(request.getEmail(), otp);
 
-            return new ResponseEntity<>("User created with INACTIVE status. OTP sent to email.", HttpStatus.OK);
+            return new ResponseEntity<>(
+                    "User created with INACTIVE status. OTP sent to email.",
+                    HttpStatus.OK
+            );
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate email during registration: {}", request.getEmail(), e);
+            User existingUser = userRepo.findByEmail(request.getEmail());
+            if (existingUser != null) {
+                if ("INACTIVE".equals(existingUser.getAuthStatus())) {
+                    otpService.clearOtp(request.getEmail());
+                    String otp = otpService.generateOTP(request.getEmail());
+                    mailService.sendOtpEmail(request.getEmail(), otp);
+                    return new ResponseEntity<>(
+                            "User already exists with INACTIVE status. New OTP sent to email.",
+                            HttpStatus.OK
+                    );
+                }
+                return new ResponseEntity<>(
+                        "User already exists with ACTIVE status. Please login.",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+            throw e;
         }
-        if (user.getAuthStatus().equals("INACTIVE")) {
-            otpService.clearOtp(request.getEmail());
-            String otp = otpService.generateOTP(request.getEmail());
-            mailService.sendOtpEmail(request.getEmail(), otp);
-            return new ResponseEntity<>("User already exists with INACTIVE status. New OTP sent to email.", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("User already exists with ACTIVE status. Please login.", HttpStatus.BAD_REQUEST);
     }
 
 
