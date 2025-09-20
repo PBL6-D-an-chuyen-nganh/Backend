@@ -41,5 +41,8 @@ public class OTPService {
                 })
                 .orElse(false);
     }
+    public void clearOtp(String email) {
+        verificationRepository.findByEmail(email).ifPresent(verificationRepository::delete);
+    }
 
 }
