@@ -161,5 +161,20 @@ public class AuthController {
 
         return new ResponseEntity<>("Password has been successfully reset.", HttpStatus.OK);
     }
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(@RequestBody ResendOtpRequest request) {
+        User user = userRepo.findByEmail(request.getEmail());
+        if (user == null) {
+            return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
+        }
+
+        // Clear OTP cũ + tạo OTP mới
+        otpService.clearOtp(request.getEmail());
+        String newOtp = otpService.generateOTP(request.getEmail());
+
+        mailService.sendOtpEmail(request.getEmail(), newOtp);
+
+        return new ResponseEntity<>("A new OTP has been sent to your email.", HttpStatus.OK);
+    }
 
 }
