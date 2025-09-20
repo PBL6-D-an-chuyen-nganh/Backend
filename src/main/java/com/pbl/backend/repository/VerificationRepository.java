@@ -7,4 +7,7 @@ import java.util.Optional;
 
 public interface VerificationRepository extends JpaRepository<Verification, Long> {
     Optional<Verification> findByEmail(String email);
+    Optional<Verification> findTopByEmailOrderByExpiredAtDesc(String email);
 }
+
+

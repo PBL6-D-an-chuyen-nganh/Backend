@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
+
 public class UserDTO {
     private Integer userId;
     private String name;
