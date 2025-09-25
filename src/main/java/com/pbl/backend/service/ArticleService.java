@@ -20,5 +20,8 @@ public class ArticleService {
     public Page<Article> getArticlesByCategory(Integer categoryID, Pageable pageable) {
         return articleRepository.findByCategoryID(categoryID, pageable);
     }
+    public Article getArticleById(Long id) {
+        return articleRepository.findById(id).orElse(null);
+    }
 
 }
