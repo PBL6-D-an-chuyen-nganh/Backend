@@ -42,4 +42,13 @@ public class DoctorController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable Integer id) {
+        DoctorDTO doctor = doctorService.getDoctorById(id);
+        if (doctor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(doctor);
+    }
+
 }

@@ -17,4 +17,12 @@ public class DoctorService {
         Page<Doctor> doctors = doctorRepo.findAll(pageable);
         return doctors.map(DoctorDTO::fromEntity);
     }
+
+    public DoctorDTO getDoctorById(Integer id) {
+        return doctorRepo.findById(id)
+                .map(DoctorDTO::fromEntity)  // dùng hàm static fromEntity
+                .orElse(null);
+    }
+
+
 }

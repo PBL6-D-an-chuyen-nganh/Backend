@@ -22,11 +22,24 @@ public class DoctorDTO extends UserDTO {
         dto.setUserId(doctor.getUserId());
         dto.setName(doctor.getName());
         dto.setEmail(doctor.getEmail());
+        dto.setPhoneNumber(doctor.getPhoneNumber());
         dto.setIntroduction(doctor.getIntroduction());
         dto.setAvatarFilepath(doctor.getAvatarFilepath());
         dto.setPosition(doctor.getPosition());
         dto.setDegree(doctor.getDegree());
         return dto;
+    }
+    public Doctor toEntity() {
+        Doctor doctor = new Doctor();
+        doctor.setUserId(this.getUserId());
+        doctor.setName(this.getName());
+        doctor.setEmail(this.getEmail());
+        doctor.setPhoneNumber(this.getPhoneNumber());
+        doctor.setIntroduction(this.getIntroduction());
+        doctor.setAvatarFilepath(this.getAvatarFilepath());
+        doctor.setPosition(this.getPosition());
+        doctor.setDegree(this.getDegree());
+        return doctor;
     }
 }
 
