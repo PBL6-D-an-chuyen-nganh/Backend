@@ -16,6 +16,7 @@ public class DoctorDTO extends UserDTO {
     private String degree;
     private String introduction;
     private String avatarFilepath;
+    private String achievements;
 
     public static DoctorDTO fromEntity(Doctor doctor) {
         DoctorDTO dto = new DoctorDTO();
@@ -27,6 +28,7 @@ public class DoctorDTO extends UserDTO {
         dto.setAvatarFilepath(doctor.getAvatarFilepath());
         dto.setPosition(doctor.getPosition());
         dto.setDegree(doctor.getDegree());
+        dto.setAchievements(doctor.getAchievements());
         return dto;
     }
     public Doctor toEntity() {
@@ -39,6 +41,7 @@ public class DoctorDTO extends UserDTO {
         doctor.setAvatarFilepath(this.getAvatarFilepath());
         doctor.setPosition(this.getPosition());
         doctor.setDegree(this.getDegree());
+        doctor.setAchievements(this.getAchievements());
         return doctor;
     }
 }

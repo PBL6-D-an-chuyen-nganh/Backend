@@ -54,10 +54,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_URLS).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll() // Thêm dòng này
-                        .requestMatchers(HttpMethod.GET).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)
