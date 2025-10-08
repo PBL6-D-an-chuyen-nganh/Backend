@@ -14,11 +14,13 @@ import java.util.List;
 public class PostController {
     @Autowired
     private PostService postService;
-    @PostMapping
 
-    public Post createPost(@RequestBody Post post) {
-        return postService.createPost(post);
+    @PostMapping
+    public PostDTO createPost(@RequestBody Post post) {
+        Post savedPost = postService.createPost(post);
+        return PostDTO.fromEntity(savedPost);
     }
+
 
     @GetMapping
     public List<PostDTO> getAllPosts() {

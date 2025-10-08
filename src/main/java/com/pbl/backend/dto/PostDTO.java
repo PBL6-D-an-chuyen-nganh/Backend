@@ -29,7 +29,6 @@ public class PostDTO {
         if (author != null) {
             authorDTO = new AuthorDTO(author.getUserId(), author.getName());
         }
-
         return new PostDTO(
                 post.getPostID(),
                 post.getTitle(),
