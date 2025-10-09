@@ -1,14 +1,8 @@
 package com.pbl.backend.service;
 
 import com.pbl.backend.dto.AppointmentRequestDTO;
-import com.pbl.backend.model.Appointment;
-import com.pbl.backend.model.Doctor;
-import com.pbl.backend.model.Patient;
-import com.pbl.backend.model.Schedule;
-import com.pbl.backend.repository.AppointmentRepository;
-import com.pbl.backend.repository.DoctorRepository;
-import com.pbl.backend.repository.PatientRepository;
-import com.pbl.backend.repository.ScheduleRepository;
+import com.pbl.backend.model.*;
+import com.pbl.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +16,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-
 public class AppointmentService {
 
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final ScheduleRepository scheduleRepository;
-    private final DoctorRepository doctorRepository; // Giả sử bạn đã có
+    private final DoctorRepository doctorRepository;
 
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
@@ -42,7 +35,8 @@ public class AppointmentService {
         Patient savedPatient = patientRepository.save(newPatient);
 
         // === BƯỚC 2: CHỌN BÁC SĨ PHÙ HỢP ===
-        Doctor selectedDoctor = findBestAvailableDoctor(request.getTime());
+        // <<< THAY ĐỔI: Truyền thêm specialtyId vào hàm
+        Doctor selectedDoctor = findBestAvailableDoctor(request.getTime(), request.getSpecialtyId());
 
         // === BƯỚC 3: TẠO VÀ LƯU LỊCH HẸN MỚI ===
         Appointment newAppointment = new Appointment();
@@ -54,9 +48,23 @@ public class AppointmentService {
         return appointmentRepository.save(newAppointment);
     }
 
-    private Doctor findBestAvailableDoctor(LocalDateTime requestedTime) {
+    // <<< THAY ĐỔI: Thêm tham số specialtyId
+    private Doctor findBestAvailableDoctor(LocalDateTime requestedTime, Integer specialtyId) {
         LocalDate requestedDate = requestedTime.toLocalDate();
         int requestedHour = requestedTime.getHour();
+
+        // <<< THÊM MỚI: Chuyển đổi specialtyId thành tên chuyên khoa dạng String
+        String specialtyName;
+        if (specialtyId == null) {
+            throw new IllegalArgumentException("Chưa chọn chuyên khoa.");
+        }
+        if (specialtyId == 1) {
+            specialtyName = "Khoa thẩm mỹ";
+        } else if (specialtyId == 2) {
+            specialtyName = "Khoa khám da";
+        } else {
+            throw new IllegalArgumentException("Chuyên khoa không hợp lệ.");
+        }
 
         // 1. Xác định ca làm việc (AM/PM)
         Schedule.WorkShift shift = getWorkShift(requestedHour);
@@ -64,10 +72,11 @@ public class AppointmentService {
             throw new RuntimeException("Giờ khám không hợp lệ, nằm ngoài giờ làm việc.");
         }
 
-        // 2. Tìm tất cả bác sĩ làm việc trong ca đó
-        List<Doctor> workingDoctors = scheduleRepository.findDoctorsByWorkDateAndShift(requestedDate, shift);
+        // 2. Tìm tất cả bác sĩ làm việc trong ca đó VÀ ĐÚNG CHUYÊN KHOA
+        // <<< THAY ĐỔI: Gọi phương thức repository mới
+        List<Doctor> workingDoctors = scheduleRepository.findDoctorsByWorkDateAndShiftAndSpecialty(requestedDate, shift, specialtyName);
         if (workingDoctors.isEmpty()) {
-            throw new RuntimeException("Không có bác sĩ nào làm việc trong ca này.");
+            throw new RuntimeException("Không có bác sĩ thuộc chuyên khoa '" + specialtyName + "' làm việc trong ca này.");
         }
 
         // 3. Loại bỏ các bác sĩ đã có lịch hẹn vào đúng thời điểm đó
@@ -77,10 +86,10 @@ public class AppointmentService {
                 .collect(Collectors.toList());
 
         if (availableDoctors.isEmpty()) {
-            throw new RuntimeException("Tất cả bác sĩ trong ca đã có lịch vào giờ này.");
+            throw new RuntimeException("Tất cả bác sĩ thuộc chuyên khoa này trong ca đã có lịch vào giờ này.");
         }
 
-        // Nếu chỉ có 1 bác sĩ rảnh, chọn luôn
+        // Các bước còn lại giữ nguyên logic
         if (availableDoctors.size() == 1) {
             return availableDoctors.get(0);
         }
@@ -96,8 +105,8 @@ public class AppointmentService {
 
         Map<Long, Long> doctorAppointmentCountMap = appointmentCounts.stream()
                 .collect(Collectors.toMap(
-                        result -> (Long) result[0], // doctorId
-                        result -> (Long) result[1]  // count
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
                 ));
 
         long minAppointments = Long.MAX_VALUE;
@@ -108,7 +117,6 @@ public class AppointmentService {
             }
         }
 
-        // Lọc ra danh sách các bác sĩ có cùng số lượng cuộc hẹn tối thiểu
         final long finalMinAppointments = minAppointments;
         List<Doctor> leastBusyDoctors = availableDoctors.stream()
                 .filter(doctor -> doctorAppointmentCountMap.getOrDefault(doctor.getUserId(), 0L) == finalMinAppointments)
@@ -120,7 +128,7 @@ public class AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ phù hợp."));
     }
 
-    // Helper method để xác định ca làm việc
+    // Helper method để xác định ca làm việc (giữ nguyên)
     private Schedule.WorkShift getWorkShift(int hour) {
         if (hour >= 7 && hour < 11) {
             return Schedule.WorkShift.AM;
@@ -131,7 +139,7 @@ public class AppointmentService {
         return null;
     }
 
-    // Helper methods để lấy giờ bắt đầu/kết thúc ca
+    // Helper methods để lấy giờ bắt đầu/kết thúc ca (giữ nguyên)
     private LocalDateTime getShiftStartTime(LocalDate date, Schedule.WorkShift shift) {
         return shift == Schedule.WorkShift.AM ? date.atTime(7, 0) : date.atTime(13, 0);
     }

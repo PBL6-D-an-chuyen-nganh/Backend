@@ -11,6 +11,8 @@ import java.util.List;
 
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
-    @Query("SELECT s.doctor FROM Schedule s WHERE s.workDate = :date AND s.shift = :shift")
-    List<Doctor> findDoctorsByWorkDateAndShift(LocalDate date, Schedule.WorkShift shift);
+
+    // Sửa lại Query để thêm điều kiện lọc theo chuyên khoa của bác sĩ
+    @Query("SELECT s.doctor FROM Schedule s WHERE s.workDate = :date AND s.shift = :shift AND s.doctor.specialty = :specialty")
+    List<Doctor> findDoctorsByWorkDateAndShiftAndSpecialty(LocalDate date, Schedule.WorkShift shift, String specialty);
 }
