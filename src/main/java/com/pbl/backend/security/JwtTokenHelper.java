@@ -38,14 +38,14 @@ public class JwtTokenHelper {
     }
 
     // 🔹 Tạo token, chứa cả email (subject) và userId
-    public String generateToken(UserDetails userDetails, Integer userId) {
+    public String generateToken(UserDetails userDetails, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, userDetails.getUsername(), userId);
     }
 
     // 🔹 Lấy userId từ token
-    public Integer getUserIdFromToken(String token) {
-        return getClaimFromToken(token, claims -> Integer.parseInt(claims.get("userId").toString()));
+    public Long getUserIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> Long.parseLong(claims.get("userId").toString()));
     }
 
     // 🔹 Lấy username (email) từ token
@@ -53,7 +53,7 @@ public class JwtTokenHelper {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String subject, Integer userId) {
+    private String doGenerateToken(Map<String, Object> claims, String subject, Long userId) {
         claims.put("userId", userId); // Thêm userId vào claims
         return Jwts.builder()
                 .setClaims(claims)

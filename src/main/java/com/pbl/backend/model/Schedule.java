@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "schedules")
 @Getter
@@ -22,6 +24,15 @@ public class Schedule {
     @JoinColumn(name = "doctor_id", referencedColumnName = "user_id")
     private Doctor doctor;
 
-    @Column(length = 1000)
-    private String busyTime;
+    @Column(name = "work_date", nullable = false)
+    private LocalDate workDate;
+
+    public enum WorkShift {
+        AM,
+        PM
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift", nullable = false)
+    private WorkShift shift;
 }

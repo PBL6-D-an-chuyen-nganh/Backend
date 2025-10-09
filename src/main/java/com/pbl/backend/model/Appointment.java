@@ -27,10 +27,6 @@ public class Appointment {
     @JoinColumn(name = "doctorID")
     private Doctor doctor;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diagnosisID")
-    private Diagnosis diagnosis;
-
     private LocalDateTime time;
 
     private String status;
