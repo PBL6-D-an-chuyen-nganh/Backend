@@ -9,39 +9,27 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "diagnoses")
+@Table(name = "AIDiagnoses")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Diagnosis {
+public class AIDiagnosis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long diagnosisID;
+    private Long aiID;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recordID")
-    private MedicalRecord medicalRecord;
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctorID")
-    private Doctor doctor;
+    @JoinColumn(name = "patientID")
+    private Patient patient;
 
     //@OneToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "imageID")
-    //private ImageEntity image;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aiID")
-    private AIDiagnosis aiDiagnosis;
+    //@JoinColumn(name = "scanImageID")
+    //private ScanImage scanImage;
 
     private String disease;
 
     private LocalDate dateOfDiagnosis;
 
     private String severity;
-
-    @Column(length = 4000)
-    private String doctorNotes;
 }

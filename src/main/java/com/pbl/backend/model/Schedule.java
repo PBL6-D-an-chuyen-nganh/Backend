@@ -6,24 +6,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Entity
-@Table(name = "medical_records")
+@Table(name = "schedules")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedicalRecord {
+public class Schedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long recordID;
+    private Long id;
 
-    @OneToOne(mappedBy = "medicalRecord")
-    private Patient patient;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id", referencedColumnName = "user_id")
+    private Doctor doctor;
 
-    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL)
-    private List<Diagnosis> diagnoses;
-
+    @Column(length = 1000)
+    private String busyTime;
 }
