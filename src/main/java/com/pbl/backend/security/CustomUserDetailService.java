@@ -23,7 +23,7 @@ public class CustomUserDetailService implements UserDetailsService {
         return new CustomUserDetails(user);
     }
 
-    public UserDetails loadUserById(Integer userId) throws UsernameNotFoundException {
+    public UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
         User user = userRepo.findByUserId(userId);
         if (user == null) {
             throw new UsernameNotFoundException("User not found with userId: " + userId);

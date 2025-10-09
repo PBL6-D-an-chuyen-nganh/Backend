@@ -50,7 +50,7 @@ public class UserService {
     }
 
     // Lấy user theo ID
-    public UserDTO getUserById(Integer userId) {
+    public UserDTO getUserById(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found with userId: " + userId
@@ -66,7 +66,7 @@ public class UserService {
     }
 
     // Xóa user
-    public void deleteUser(Integer userId) {
+    public void deleteUser(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found with userId: " + userId

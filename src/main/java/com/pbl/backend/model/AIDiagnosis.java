@@ -6,31 +6,30 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "appointments")
+@Table(name = "AIDiagnoses")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Appointment {
+public class AIDiagnosis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long appointmentID;
+    private Long aiID;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patientID")
     private Patient patient;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctorID")
-    private Doctor doctor;
+    //@OneToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "scanImageID")
+    //private ScanImage scanImage;
 
-    private LocalDateTime time;
+    private String disease;
 
-    private String status;
+    private LocalDate dateOfDiagnosis;
 
-    @Column(length = 2000)
-    private String note;
+    private String severity;
 }

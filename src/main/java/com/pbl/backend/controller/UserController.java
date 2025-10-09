@@ -7,13 +7,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     @Autowired
@@ -25,14 +24,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Integer userId){
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long userId){
         return ResponseEntity.ok(this.userService.getUserById(userId));
     }
 
-
     @PutMapping("/{userId}")
     public ResponseEntity<UserDTO> updateUser(
-            @PathVariable("userId") Integer id,
+            @PathVariable("userId") Long id,
             @Valid @RequestBody UserDTO userDTO) {
 
         userDTO.setUserId(id); // gán id từ path vào DTO
@@ -41,7 +39,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Integer userId)
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId)
     {
         this.userService.deleteUser(userId);
         return new ResponseEntity<ApiResponse>(new ApiResponse("User deleted Successfully", true), HttpStatus.OK);
