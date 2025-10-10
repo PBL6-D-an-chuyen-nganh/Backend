@@ -1,17 +1,23 @@
 package com.pbl.backend.service;
 
 import com.pbl.backend.dto.AppointmentRequestDTO;
-import com.pbl.backend.model.*;
-import com.pbl.backend.repository.*;
+import com.pbl.backend.model.Appointment;
+import com.pbl.backend.model.Doctor;
+import com.pbl.backend.model.Patient;
+import com.pbl.backend.model.Schedule;
+import com.pbl.backend.repository.AppointmentRepository;
+import com.pbl.backend.repository.DoctorRepository;
+import com.pbl.backend.repository.PatientRepository;
+import com.pbl.backend.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,7 +41,6 @@ public class AppointmentService {
         Patient savedPatient = patientRepository.save(newPatient);
 
         // === BƯỚC 2: CHỌN BÁC SĨ PHÙ HỢP ===
-        // <<< THAY ĐỔI: Truyền thêm specialtyId vào hàm
         Doctor selectedDoctor = findBestAvailableDoctor(request.getTime(), request.getSpecialtyId());
 
         // === BƯỚC 3: TẠO VÀ LƯU LỊCH HẸN MỚI ===
@@ -48,12 +53,10 @@ public class AppointmentService {
         return appointmentRepository.save(newAppointment);
     }
 
-    // <<< THAY ĐỔI: Thêm tham số specialtyId
     private Doctor findBestAvailableDoctor(LocalDateTime requestedTime, Integer specialtyId) {
         LocalDate requestedDate = requestedTime.toLocalDate();
         int requestedHour = requestedTime.getHour();
 
-        // <<< THÊM MỚI: Chuyển đổi specialtyId thành tên chuyên khoa dạng String
         String specialtyName;
         if (specialtyId == null) {
             throw new IllegalArgumentException("Chưa chọn chuyên khoa.");
@@ -73,7 +76,6 @@ public class AppointmentService {
         }
 
         // 2. Tìm tất cả bác sĩ làm việc trong ca đó VÀ ĐÚNG CHUYÊN KHOA
-        // <<< THAY ĐỔI: Gọi phương thức repository mới
         List<Doctor> workingDoctors = scheduleRepository.findDoctorsByWorkDateAndShiftAndSpecialty(requestedDate, shift, specialtyName);
         if (workingDoctors.isEmpty()) {
             throw new RuntimeException("Không có bác sĩ thuộc chuyên khoa '" + specialtyName + "' làm việc trong ca này.");
@@ -89,7 +91,6 @@ public class AppointmentService {
             throw new RuntimeException("Tất cả bác sĩ thuộc chuyên khoa này trong ca đã có lịch vào giờ này.");
         }
 
-        // Các bước còn lại giữ nguyên logic
         if (availableDoctors.size() == 1) {
             return availableDoctors.get(0);
         }
@@ -146,5 +147,115 @@ public class AppointmentService {
 
     private LocalDateTime getShiftEndTime(LocalDate date, Schedule.WorkShift shift) {
         return shift == Schedule.WorkShift.AM ? date.atTime(11, 0) : date.atTime(17, 0);
+    }
+
+    public List<LocalDate> findUnavailableDatesInMonth(Integer specialtyId) {
+        LocalDate today = LocalDate.now();
+        LocalDate endOfMonth = YearMonth.from(today).atEndOfMonth();
+
+        if (today.isAfter(endOfMonth)) {
+            return Collections.emptyList();
+        }
+
+        String specialtyName = getSpecialtyNameById(specialtyId);
+        List<Schedule> allSchedules = scheduleRepository.findSchedulesBySpecialtyAndDateRange(specialtyName, today, endOfMonth);
+
+        Map<LocalDate, Set<LocalDateTime>> allPossibleSlotsByDay = new HashMap<>();
+        for (Schedule schedule : allSchedules) {
+            LocalDate workDate = schedule.getWorkDate();
+            allPossibleSlotsByDay.putIfAbsent(workDate, new HashSet<>());
+
+            LocalTime startTime = getShiftStartTime(workDate, schedule.getShift()).toLocalTime();
+            LocalTime endTime = getShiftEndTime(workDate, schedule.getShift()).toLocalTime();
+            LocalTime currentTimeSlot = startTime;
+            while (currentTimeSlot.isBefore(endTime)) {
+                allPossibleSlotsByDay.get(workDate).add(workDate.atTime(currentTimeSlot));
+                currentTimeSlot = currentTimeSlot.plusMinutes(30);
+            }
+        }
+
+        List<LocalDateTime> unavailableSlots = findUnavailableSlots(today, endOfMonth, specialtyId);
+        Set<LocalDateTime> unavailableSlotsSet = new HashSet<>(unavailableSlots);
+
+        List<LocalDate> fullyBookedDates = new ArrayList<>();
+        for (Map.Entry<LocalDate, Set<LocalDateTime>> entry : allPossibleSlotsByDay.entrySet()) {
+            LocalDate date = entry.getKey();
+            Set<LocalDateTime> possibleSlots = entry.getValue();
+            if (!possibleSlots.isEmpty() && unavailableSlotsSet.containsAll(possibleSlots)) {
+                fullyBookedDates.add(date);
+            }
+        }
+        return fullyBookedDates;
+    }
+
+    public Map<Integer, List<LocalDateTime>> findUnavailableSlotsBySpecialtyForDate(LocalDate date) {
+        Map<Integer, List<LocalDateTime>> result = new HashMap<>();
+
+        // Định nghĩa các chuyên khoa cần kiểm tra
+        Map<Integer, String> specialtiesToCheck = Map.of(
+                1, "Khoa thẩm mỹ",
+                2, "Khoa khám da"
+        );
+
+        // Lặp qua từng chuyên khoa để lấy danh sách giờ đã đầy
+        for (Integer specialtyId : specialtiesToCheck.keySet()) {
+            // Tái sử dụng hàm tìm kiếm đã có cho từng chuyên khoa
+            List<LocalDateTime> unavailableSlots = findUnavailableSlots(date, date, specialtyId);
+            result.put(specialtyId, unavailableSlots);
+        }
+
+        return result;
+    }
+
+    public List<LocalDateTime> findUnavailableSlots(LocalDate startDate, LocalDate endDate, Integer specialtyId) {
+        String specialtyName = getSpecialtyNameById(specialtyId);
+        List<LocalDateTime> unavailableSlots = new ArrayList<>();
+        List<Schedule> allSchedules = scheduleRepository.findSchedulesBySpecialtyAndDateRange(specialtyName, startDate, endDate);
+
+        Map<LocalDateTime, Integer> slotCapacity = new HashMap<>();
+        for (Schedule schedule : allSchedules) {
+            LocalDate workDate = schedule.getWorkDate();
+            LocalTime startTime = getShiftStartTime(workDate, schedule.getShift()).toLocalTime();
+            LocalTime endTime = getShiftEndTime(workDate, schedule.getShift()).toLocalTime();
+            LocalTime currentTimeSlot = startTime;
+            while (currentTimeSlot.isBefore(endTime)) {
+                LocalDateTime slotDateTime = workDate.atTime(currentTimeSlot);
+                slotCapacity.put(slotDateTime, slotCapacity.getOrDefault(slotDateTime, 0) + 1);
+                currentTimeSlot = currentTimeSlot.plusMinutes(30);
+            }
+        }
+
+        if (slotCapacity.isEmpty()) {
+            return unavailableSlots;
+        }
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        List<Appointment> allAppointments = appointmentRepository.findAppointmentsBySpecialtyAndDateTimeRange(specialtyName, startDateTime, endDateTime);
+        Map<LocalDateTime, Long> bookedCounts = allAppointments.stream()
+                .collect(Collectors.groupingBy(Appointment::getTime, Collectors.counting()));
+
+        for (Map.Entry<LocalDateTime, Integer> entry : slotCapacity.entrySet()) {
+            LocalDateTime slot = entry.getKey();
+            Integer capacity = entry.getValue();
+            Long booked = bookedCounts.getOrDefault(slot, 0L);
+            if (booked >= capacity) {
+                unavailableSlots.add(slot);
+            }
+        }
+        return unavailableSlots;
+    }
+    private String getSpecialtyNameById(Integer specialtyId) {
+        if (specialtyId == null) {
+            throw new IllegalArgumentException("Chưa chọn chuyên khoa.");
+        }
+        switch (specialtyId) {
+            case 1:
+                return "Khoa thẩm mỹ";
+            case 2:
+                return "Khoa khám da";
+            default:
+                throw new IllegalArgumentException("Chuyên khoa không hợp lệ.");
+        }
     }
 }
