@@ -24,4 +24,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Object[]> countAppointmentsForDoctorsInShift(@Param("doctorIds") List<Long> doctorIds,
                                                       @Param("startTime") LocalDateTime startTime,
                                                       @Param("endTime") LocalDateTime endTime);
+    // trong interface AppointmentRepository
+
+    @Query("SELECT a FROM Appointment a JOIN a.doctor d WHERE d.specialty = :specialty AND a.time BETWEEN :startDateTime AND :endDateTime")
+    List<Appointment> findAppointmentsBySpecialtyAndDateTimeRange(String specialty, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }
