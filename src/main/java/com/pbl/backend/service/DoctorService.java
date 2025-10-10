@@ -49,7 +49,10 @@ public class DoctorService {
 
             // 3. Lọc theo chức vụ
             if (StringUtils.hasText(position)) {
-                predicates.add(criteriaBuilder.equal(root.get("position"), position));
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("position")),
+                        "%" + position.toLowerCase() + "%"
+                ));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
