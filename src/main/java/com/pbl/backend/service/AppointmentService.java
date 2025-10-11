@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +28,7 @@ public class AppointmentService {
     private final ScheduleRepository scheduleRepository;
     private final DoctorRepository doctorRepository;
 
+    // Giữ nguyên không thay đổi
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
         // === BƯỚC 1: TẠO VÀ LƯU BỆNH NHÂN MỚI ===
@@ -53,21 +53,12 @@ public class AppointmentService {
         return appointmentRepository.save(newAppointment);
     }
 
+    // Giữ nguyên không thay đổi
     private Doctor findBestAvailableDoctor(LocalDateTime requestedTime, Integer specialtyId) {
         LocalDate requestedDate = requestedTime.toLocalDate();
         int requestedHour = requestedTime.getHour();
 
-        String specialtyName;
-        if (specialtyId == null) {
-            throw new IllegalArgumentException("Chưa chọn chuyên khoa.");
-        }
-        if (specialtyId == 1) {
-            specialtyName = "Khoa thẩm mỹ";
-        } else if (specialtyId == 2) {
-            specialtyName = "Khoa khám da";
-        } else {
-            throw new IllegalArgumentException("Chuyên khoa không hợp lệ.");
-        }
+        String specialtyName = getSpecialtyNameById(specialtyId);
 
         // 1. Xác định ca làm việc (AM/PM)
         Schedule.WorkShift shift = getWorkShift(requestedHour);
@@ -129,26 +120,34 @@ public class AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ phù hợp."));
     }
 
-    // Helper method để xác định ca làm việc (giữ nguyên)
-    private Schedule.WorkShift getWorkShift(int hour) {
-        if (hour >= 7 && hour < 11) {
-            return Schedule.WorkShift.AM;
+    // *** BẮT ĐẦU PHẦN THAY ĐỔI ***
+
+    /**
+     * Phương thức mới để tạo các slot khám bệnh cho một lịch làm việc cụ thể.
+     * Mỗi slot kéo dài 30 phút và có 5 phút nghỉ, do đó thời gian bắt đầu của các slot cách nhau 35 phút.
+     *
+     * @param schedule Lịch làm việc của bác sĩ.
+     * @return Danh sách các LocalDateTime là thời điểm bắt đầu của các slot.
+     */
+    private List<LocalDateTime> generateSlotsForSchedule(Schedule schedule) {
+        List<LocalDateTime> slots = new ArrayList<>();
+        LocalDate workDate = schedule.getWorkDate();
+        LocalDateTime shiftStartTime = getShiftStartTime(workDate, schedule.getShift());
+        LocalDateTime shiftEndTime = getShiftEndTime(workDate, schedule.getShift());
+
+        LocalDateTime currentSlotStart = shiftStartTime;
+
+        // Vòng lặp sẽ tiếp tục khi thời điểm bắt đầu của slot hiện tại
+        // cộng thêm 30 phút (thời gian khám) không vượt quá giờ kết thúc ca.
+        while (currentSlotStart.plusMinutes(30).isBefore(shiftEndTime) || currentSlotStart.plusMinutes(30).isEqual(shiftEndTime)) {
+            slots.add(currentSlotStart);
+            // Tăng thời gian lên 35 phút để có 5 phút nghỉ giữa các ca
+            currentSlotStart = currentSlotStart.plusMinutes(35);
         }
-        if (hour >= 13 && hour < 17) {
-            return Schedule.WorkShift.PM;
-        }
-        return null;
+        return slots;
     }
 
-    // Helper methods để lấy giờ bắt đầu/kết thúc ca (giữ nguyên)
-    private LocalDateTime getShiftStartTime(LocalDate date, Schedule.WorkShift shift) {
-        return shift == Schedule.WorkShift.AM ? date.atTime(7, 0) : date.atTime(13, 0);
-    }
-
-    private LocalDateTime getShiftEndTime(LocalDate date, Schedule.WorkShift shift) {
-        return shift == Schedule.WorkShift.AM ? date.atTime(11, 0) : date.atTime(17, 0);
-    }
-
+    // Đã cập nhật để sử dụng phương thức generateSlotsForSchedule
     public List<LocalDate> findUnavailableDatesInMonth(Integer specialtyId) {
         LocalDate today = LocalDate.now();
         LocalDate endOfMonth = YearMonth.from(today).atEndOfMonth();
@@ -164,14 +163,9 @@ public class AppointmentService {
         for (Schedule schedule : allSchedules) {
             LocalDate workDate = schedule.getWorkDate();
             allPossibleSlotsByDay.putIfAbsent(workDate, new HashSet<>());
-
-            LocalTime startTime = getShiftStartTime(workDate, schedule.getShift()).toLocalTime();
-            LocalTime endTime = getShiftEndTime(workDate, schedule.getShift()).toLocalTime();
-            LocalTime currentTimeSlot = startTime;
-            while (currentTimeSlot.isBefore(endTime)) {
-                allPossibleSlotsByDay.get(workDate).add(workDate.atTime(currentTimeSlot));
-                currentTimeSlot = currentTimeSlot.plusMinutes(30);
-            }
+            // Sử dụng phương thức mới để tạo slot
+            List<LocalDateTime> slotsForSchedule = generateSlotsForSchedule(schedule);
+            allPossibleSlotsByDay.get(workDate).addAll(slotsForSchedule);
         }
 
         List<LocalDateTime> unavailableSlots = findUnavailableSlots(today, endOfMonth, specialtyId);
@@ -188,40 +182,33 @@ public class AppointmentService {
         return fullyBookedDates;
     }
 
+    // Giữ nguyên không thay đổi
     public Map<Integer, List<LocalDateTime>> findUnavailableSlotsBySpecialtyForDate(LocalDate date) {
         Map<Integer, List<LocalDateTime>> result = new HashMap<>();
-
-        // Định nghĩa các chuyên khoa cần kiểm tra
         Map<Integer, String> specialtiesToCheck = Map.of(
                 1, "Khoa thẩm mỹ",
                 2, "Khoa khám da"
         );
-
-        // Lặp qua từng chuyên khoa để lấy danh sách giờ đã đầy
         for (Integer specialtyId : specialtiesToCheck.keySet()) {
-            // Tái sử dụng hàm tìm kiếm đã có cho từng chuyên khoa
             List<LocalDateTime> unavailableSlots = findUnavailableSlots(date, date, specialtyId);
             result.put(specialtyId, unavailableSlots);
         }
-
         return result;
     }
 
+    // Đã cập nhật để sử dụng phương thức generateSlotsForSchedule
     public List<LocalDateTime> findUnavailableSlots(LocalDate startDate, LocalDate endDate, Integer specialtyId) {
         String specialtyName = getSpecialtyNameById(specialtyId);
         List<LocalDateTime> unavailableSlots = new ArrayList<>();
         List<Schedule> allSchedules = scheduleRepository.findSchedulesBySpecialtyAndDateRange(specialtyName, startDate, endDate);
 
+        // Tính toán tổng số "chỗ" có sẵn cho mỗi slot thời gian
         Map<LocalDateTime, Integer> slotCapacity = new HashMap<>();
         for (Schedule schedule : allSchedules) {
-            LocalDate workDate = schedule.getWorkDate();
-            LocalTime startTime = getShiftStartTime(workDate, schedule.getShift()).toLocalTime();
-            LocalTime endTime = getShiftEndTime(workDate, schedule.getShift()).toLocalTime();
-            LocalTime currentTimeSlot = startTime;
-            while (currentTimeSlot.isBefore(endTime)) {
-                LocalDateTime slotDateTime = workDate.atTime(currentTimeSlot);
+            // Sử dụng phương thức mới để tạo slot
+            List<LocalDateTime> slotsForSchedule = generateSlotsForSchedule(schedule);
+            for (LocalDateTime slotDateTime : slotsForSchedule) {
                 slotCapacity.put(slotDateTime, slotCapacity.getOrDefault(slotDateTime, 0) + 1);
-                currentTimeSlot = currentTimeSlot.plusMinutes(30);
             }
         }
 
@@ -229,12 +216,14 @@ public class AppointmentService {
             return unavailableSlots;
         }
 
+        // Lấy tất cả các cuộc hẹn đã được đặt
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         List<Appointment> allAppointments = appointmentRepository.findAppointmentsBySpecialtyAndDateTimeRange(specialtyName, startDateTime, endDateTime);
         Map<LocalDateTime, Long> bookedCounts = allAppointments.stream()
                 .collect(Collectors.groupingBy(Appointment::getTime, Collectors.counting()));
 
+        // So sánh số chỗ có sẵn với số chỗ đã đặt
         for (Map.Entry<LocalDateTime, Integer> entry : slotCapacity.entrySet()) {
             LocalDateTime slot = entry.getKey();
             Integer capacity = entry.getValue();
@@ -245,6 +234,28 @@ public class AppointmentService {
         }
         return unavailableSlots;
     }
+
+    // *** KẾT THÚC PHẦN THAY ĐỔI ***
+
+    // Helper methods giữ nguyên không thay đổi
+    private Schedule.WorkShift getWorkShift(int hour) {
+        if (hour >= 7 && hour < 11) {
+            return Schedule.WorkShift.AM;
+        }
+        if (hour >= 13 && hour < 17) {
+            return Schedule.WorkShift.PM;
+        }
+        return null;
+    }
+
+    private LocalDateTime getShiftStartTime(LocalDate date, Schedule.WorkShift shift) {
+        return shift == Schedule.WorkShift.AM ? date.atTime(7, 0) : date.atTime(13, 0);
+    }
+
+    private LocalDateTime getShiftEndTime(LocalDate date, Schedule.WorkShift shift) {
+        return shift == Schedule.WorkShift.AM ? date.atTime(11, 0) : date.atTime(17, 0);
+    }
+
     private String getSpecialtyNameById(Integer specialtyId) {
         if (specialtyId == null) {
             throw new IllegalArgumentException("Chưa chọn chuyên khoa.");
