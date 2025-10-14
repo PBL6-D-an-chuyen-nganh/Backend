@@ -8,5 +8,5 @@ public class AppointmentRequestDTO {
     private PatientDTO patientInfo;
     private LocalDateTime time;
     private String note;
-    private Integer specialtyId; // <<< THÊM TRƯỜNG NÀY (sẽ nhận giá trị 1 hoặc 2)
+    private Long doctorId;
 }

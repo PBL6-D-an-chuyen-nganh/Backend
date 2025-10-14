@@ -1,31 +1,16 @@
 package com.pbl.backend.repository;
 
 import com.pbl.backend.model.Appointment;
-import com.pbl.backend.model.Doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    // Tìm các bác sĩ đã có lịch hẹn vào một thời điểm chính xác
-    @Query("SELECT a.doctor FROM Appointment a WHERE a.time = :exactTime")
-    List<Doctor> findDoctorsWithAppointmentAtTime(@Param("exactTime") LocalDateTime exactTime);
+    // Tìm các cuộc hẹn của 1 bác sĩ sau một thời điểm nhất định
+    List<Appointment> findByDoctorUserIdAndTimeAfter(Long doctorId, LocalDateTime time);
 
-    // Đếm số lượng cuộc hẹn của một danh sách bác sĩ trong một khoảng thời gian (ca làm việc)
-    @Query("SELECT a.doctor.userId, COUNT(a) FROM Appointment a " +
-            "WHERE a.doctor.userId IN :doctorIds AND a.time >= :startTime AND a.time < :endTime " +
-            "GROUP BY a.doctor.userId")
-    List<Object[]> countAppointmentsForDoctorsInShift(@Param("doctorIds") List<Long> doctorIds,
-                                                      @Param("startTime") LocalDateTime startTime,
-                                                      @Param("endTime") LocalDateTime endTime);
-    // trong interface AppointmentRepository
-
-    @Query("SELECT a FROM Appointment a JOIN a.doctor d WHERE d.specialty = :specialty AND a.time BETWEEN :startDateTime AND :endDateTime")
-    List<Appointment> findAppointmentsBySpecialtyAndDateTimeRange(String specialty, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    // Tìm cuộc hẹn của bác sĩ tại một thời điểm cụ thể để kiểm tra trùng lặp
+    Optional<Appointment> findByDoctorUserIdAndTime(Long doctorId, LocalDateTime time);
 }
