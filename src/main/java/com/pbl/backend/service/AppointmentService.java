@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -36,8 +39,11 @@ public class AppointmentService {
         Doctor selectedDoctor = doctorRepository.findByUserId(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ với UserID " + doctorId + " không tồn tại."));
 
-        List<LocalDateTime> availableSlots = doctorService.getAvailableSlotsForDoctor(doctorId);
-        if (!availableSlots.contains(requestedTime)) {
+        Map<LocalDate, List<LocalTime>> availableSlots = doctorService.getAvailableSlotsForDoctor(doctorId);
+        LocalDate requestedDate = requestedTime.toLocalDate();
+        LocalTime requestedTimePart = requestedTime.toLocalTime();
+        List<LocalTime> validTimesForDay = availableSlots.get(requestedDate);
+        if (validTimesForDay == null || !validTimesForDay.contains(requestedTimePart)) {
             throw new RuntimeException("Khung giờ bạn chọn không hợp lệ hoặc đã có người khác đặt.");
         }
 

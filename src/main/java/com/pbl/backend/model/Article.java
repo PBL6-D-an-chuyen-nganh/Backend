@@ -21,14 +21,15 @@ public class Article {
 
     private String title;
 
-    @Column(length = 10000)
-    private String content;
+    private String cause;
 
-    private String category;
+    private String symptoms;
+
+    private String treatment;
+
+    private String prevention;
 
     private String imageUrl;
-
-    private Integer categoryID;
 
     private LocalDateTime createdAt;
 }
