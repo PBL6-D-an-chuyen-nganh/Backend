@@ -20,7 +20,6 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Đăng ký user mới
     public UserDTO registerNewUser(UserDTO userDTO, String rawPassword) {
         User user = userDTO.toEntity();
 
@@ -32,7 +31,6 @@ public class UserService {
         return UserDTO.fromEntity(newUser);
     }
 
-    // Cập nhật user
     public UserDTO updateUser(UserDTO userDTO) {
         User user = userRepo.findById(userDTO.getUserId())
                 .orElseThrow(() -> new UsernameNotFoundException(

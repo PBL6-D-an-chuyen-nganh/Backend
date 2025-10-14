@@ -40,31 +40,6 @@ public class ArticleController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/category/{categoryID}")
-    public ResponseEntity<PagedResponse<Article>> getArticlesByCategory(
-            @PathVariable Integer categoryID,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
-    ) {
-        Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Article> articles = articleService.getArticlesByCategory(categoryID, pageable);
-
-        PagedResponse<Article> response = new PagedResponse<>(
-                articles.getContent(),
-                articles.getNumber(),
-                articles.getSize(),
-                articles.getTotalElements(),
-                articles.getTotalPages(),
-                articles.isLast()
-        );
-
-        return ResponseEntity.ok(response);
-    }
     @GetMapping("/{id}")
     public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
         Article article = articleService.getArticleById(id);

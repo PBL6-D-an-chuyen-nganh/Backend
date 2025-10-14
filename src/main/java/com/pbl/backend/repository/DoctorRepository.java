@@ -9,6 +9,5 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     List<Doctor> findBySpecialty(String specialty);
 
-    // Tìm kiếm Doctor dựa trên userId kế thừa từ lớp User
     Optional<Doctor> findByUserId(Long userId);
 }
