@@ -21,4 +21,7 @@ public class ArticleService {
         return articleRepository.findById(id).orElse(null);
     }
 
+    public Page<Article> searchArticles(String keyword, Pageable pageable) {
+        return articleRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+    }
 }

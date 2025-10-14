@@ -59,6 +59,37 @@ public class DoctorController {
         return ResponseEntity.ok(doctor);
     }
 
+    @GetMapping("/search-filter")
+    public ResponseEntity<PagedResponse<DoctorDTO>> searchDoctors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "userId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir,
+
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String degree,
+            @RequestParam(required = false) String position
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<DoctorDTO> doctors = doctorService.searchDoctors(name, degree, position, pageable);
+
+        PagedResponse<DoctorDTO> response = new PagedResponse<>(
+                doctors.getContent(),
+                doctors.getNumber(),
+                doctors.getSize(),
+                doctors.getTotalElements(),
+                doctors.getTotalPages(),
+                doctors.isLast()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/by-specialty")
     public ResponseEntity<List<Doctor>> getDoctorsBySpecialty(@RequestParam Integer specialtyId) {
         List<Doctor> doctors = doctorService.getDoctorsBySpecialty(specialtyId);

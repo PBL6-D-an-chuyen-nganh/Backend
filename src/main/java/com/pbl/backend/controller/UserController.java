@@ -33,7 +33,7 @@ public class UserController {
             @PathVariable("userId") Long id,
             @Valid @RequestBody UserDTO userDTO) {
 
-        userDTO.setUserId(id); // gán id từ path vào DTO
+        userDTO.setUserId(id);
         UserDTO updated = this.userService.updateUser(userDTO);
         return ResponseEntity.ok(updated);
     }

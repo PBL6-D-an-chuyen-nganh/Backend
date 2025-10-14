@@ -10,7 +10,10 @@ import com.pbl.backend.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import jakarta.persistence.criteria.Predicate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +36,7 @@ public class DoctorService {
 
     public DoctorDTO getDoctorById(Long id) {
         return doctorRepository.findById(id)
-                .map(DoctorDTO::fromEntity)  // dùng hàm static fromEntity
+                .map(DoctorDTO::fromEntity)
                 .orElse(null);
     }
 
@@ -43,8 +46,36 @@ public class DoctorService {
         return doctorRepository.findBySpecialty(specialtyName);
     }
 
+    public Page<DoctorDTO> searchDoctors(String name, String degree, String position, Pageable pageable) {
+        Specification<Doctor> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(name)) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("name")),
+                        "%" + name.toLowerCase() + "%"
+                ));
+            }
+
+            if (StringUtils.hasText(degree)) {
+                predicates.add(criteriaBuilder.equal(root.get("degree"), degree));
+            }
+
+            if (StringUtils.hasText(position)) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("position")),
+                        "%" + position.toLowerCase() + "%"
+                ));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Doctor> doctors = doctorRepository.findAll(spec, pageable);
+        return doctors.map(DoctorDTO::fromEntity);
+    }
+
     public Map<LocalDate, List<LocalTime>> getAvailableSlotsForDoctor(Long doctorId) {
-        // Bước 1: Lấy tất cả lịch làm việc và các lịch hẹn đã đặt (giữ nguyên)
         List<Schedule> schedules = scheduleRepository.findByDoctorUserIdAndWorkDateAfter(doctorId, LocalDate.now().minusDays(1));
         List<Appointment> appointments = appointmentRepository.findByDoctorUserIdAndTimeAfter(doctorId, LocalDateTime.now().minusHours(1));
 
@@ -52,29 +83,22 @@ public class DoctorService {
                 .map(Appointment::getTime)
                 .collect(Collectors.toSet());
 
-        // Bước 2: Tạo ra tất cả các slot có thể có từ lịch làm việc (giữ nguyên)
         Set<LocalDateTime> allPossibleSlots = new HashSet<>();
         for (Schedule schedule : schedules) {
             allPossibleSlots.addAll(generateSlotsForSchedule(schedule));
         }
 
-        // Bước 3: Lọc ra các slot còn trống và trong tương lai (giữ nguyên)
         List<LocalDateTime> availableSlots = allPossibleSlots.stream()
                 .filter(slot -> !bookedSlots.contains(slot) && slot.isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
 
-        // Bước 4: Chuyển đổi danh sách phẳng thành cấu trúc Map<Ngày, List<Giờ>>
-        // Dùng Stream API để nhóm các LocalDateTime theo ngày (toLocalDate),
-        // và thu thập các giờ (toLocalTime) vào một danh sách.
-        // Sử dụng TreeMap để đảm bảo các ngày được sắp xếp theo thứ tự thời gian.
         Map<LocalDate, List<LocalTime>> groupedSlots = availableSlots.stream()
                 .collect(Collectors.groupingBy(
                         LocalDateTime::toLocalDate,
-                        TreeMap::new, // Đảm bảo Map được sắp xếp theo ngày
+                        TreeMap::new,
                         Collectors.mapping(LocalDateTime::toLocalTime, Collectors.toList())
                 ));
 
-        // Sắp xếp các giờ trong mỗi ngày
         groupedSlots.forEach((date, times) -> times.sort(LocalTime::compareTo));
 
         return groupedSlots;
