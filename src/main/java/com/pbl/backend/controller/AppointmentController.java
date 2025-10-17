@@ -1,5 +1,6 @@
 package com.pbl.backend.controller;
 
+import com.pbl.backend.dto.AppointmentListResponseDTO;
 import com.pbl.backend.dto.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
@@ -22,6 +23,22 @@ public class AppointmentController {
             return new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/creator/{creatorId}")
+    public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByCreatorId(@PathVariable Long creatorId) {
+        AppointmentListResponseDTO response = appointmentService.getAppointmentsByCreatorId(creatorId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{appointmentId}")
+    public ResponseEntity<String> deleteAppointment(@PathVariable Long appointmentId) {
+        try {
+            appointmentService.deleteAppointment(appointmentId);
+            return ResponseEntity.ok("Đã xoá lịch hẹn với ID: " + appointmentId + " thành công.");
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 }
