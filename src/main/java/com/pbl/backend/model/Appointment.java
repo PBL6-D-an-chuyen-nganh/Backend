@@ -36,4 +36,6 @@ public class Appointment {
 
     @Column(name = "creator_id")
     private Long creatorId;
+
+    private LocalDateTime createdAt;
 }

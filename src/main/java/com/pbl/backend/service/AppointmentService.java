@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -66,6 +67,17 @@ public class AppointmentService {
         newAppointment.setDoctor(selectedDoctor);
         newAppointment.setTime(requestedTime);
         newAppointment.setNote(request.getNote());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        long hoursUntilAppointment = Duration.between(now, requestedTime).toHours();
+
+        if (hoursUntilAppointment > 24) {
+            newAppointment.setStatus("active");
+        } else {
+            newAppointment.setStatus("inactive");
+        }
+        newAppointment.setCreatedAt(LocalDateTime.now());
         newAppointment.setCreatorId(creatorId);
 
         return appointmentRepository.save(newAppointment);
