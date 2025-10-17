@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
-    // Tìm lịch làm việc của 1 bác sĩ sau một ngày nhất định
     List<Schedule> findByDoctorUserIdAndWorkDateAfter(Long doctorId, LocalDate date);
 }

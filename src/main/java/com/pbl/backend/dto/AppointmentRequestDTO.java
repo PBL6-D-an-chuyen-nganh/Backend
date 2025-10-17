@@ -9,4 +9,5 @@ public class AppointmentRequestDTO {
     private LocalDateTime time;
     private String note;
     private Long doctorId;
+    private Long creatorId;
 }

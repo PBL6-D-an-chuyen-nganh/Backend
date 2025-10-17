@@ -33,4 +33,7 @@ public class Appointment {
 
     @Column(length = 2000)
     private String note;
+
+    @Column(name = "creator_id")
+    private Long creatorId;
 }

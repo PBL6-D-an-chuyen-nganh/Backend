@@ -34,9 +34,9 @@ public class Patient {
 
     private LocalDate dateOfBirth;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "recordID")
-//    private MedicalRecord medicalRecord;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "recordID")
+    private MedicalRecord medicalRecord;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Appointment> appointments;
