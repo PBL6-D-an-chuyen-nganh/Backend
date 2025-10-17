@@ -31,6 +31,7 @@ public class AppointmentService {
     public Appointment createAppointment(AppointmentRequestDTO request) {
         Long doctorId = request.getDoctorId();
         LocalDateTime requestedTime = request.getTime();
+        Long creatorId = request.getCreatorId();
 
         if (doctorId == null || requestedTime == null) {
             throw new RuntimeException("Thiếu thông tin bác sĩ hoặc thời gian hẹn.");
@@ -65,6 +66,7 @@ public class AppointmentService {
         newAppointment.setDoctor(selectedDoctor);
         newAppointment.setTime(requestedTime);
         newAppointment.setNote(request.getNote());
+        newAppointment.setCreatorId(creatorId);
 
         return appointmentRepository.save(newAppointment);
     }

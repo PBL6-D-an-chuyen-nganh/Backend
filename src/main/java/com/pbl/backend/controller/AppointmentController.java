@@ -15,7 +15,6 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
-    // API 3: Tạo appointment với thông tin bao gồm cả doctorId
     @PostMapping("/create")
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO request) {
         try {

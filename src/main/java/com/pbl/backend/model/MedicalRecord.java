@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "medical_records")
 @Getter
@@ -18,10 +20,10 @@ public class MedicalRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recordID;
 
-//    @OneToOne(mappedBy = "medicalRecord")
-//    private Patient patient;
+    @OneToOne(mappedBy = "medicalRecord")
+    private Patient patient;
 
-//    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL)
-//    private List<Diagnosis> diagnoses;
+    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL)
+    private List<Diagnosis> diagnoses;
 
 }
