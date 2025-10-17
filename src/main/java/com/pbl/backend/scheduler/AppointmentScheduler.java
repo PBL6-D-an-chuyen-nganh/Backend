@@ -2,6 +2,7 @@ package com.pbl.backend.scheduler;
 
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.repository.AppointmentRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ public class AppointmentScheduler {
 
     private final AppointmentRepository appointmentRepository;
 
+    @PostConstruct
     @Scheduled(fixedRate = 60 * 60 * 1000)
     public void updateAppointmentStatuses() {
         LocalDateTime now = LocalDateTime.now();

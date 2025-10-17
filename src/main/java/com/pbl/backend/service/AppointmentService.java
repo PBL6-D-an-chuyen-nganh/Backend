@@ -1,6 +1,6 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.AppointmentRequestDTO;
+import com.pbl.backend.dto.*;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Patient;
@@ -18,6 +18,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -81,5 +82,54 @@ public class AppointmentService {
         newAppointment.setCreatorId(creatorId);
 
         return appointmentRepository.save(newAppointment);
+    }
+
+    public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId) {
+        List<Appointment> appointmentEntities = appointmentRepository.findByCreatorId(creatorId);
+
+        List<AppointmentDetailDTO> appointmentDTOs = appointmentEntities
+                .stream()
+                .map(this::convertToDetailDTO)
+                .collect(Collectors.toList());
+
+        long totalAppointments = appointmentEntities.size();
+
+        return new AppointmentListResponseDTO(totalAppointments, appointmentDTOs);
+    }
+
+    private AppointmentDetailDTO convertToDetailDTO(Appointment appointment) {
+        Doctor doctor = appointment.getDoctor();
+        Patient patient = appointment.getPatient();
+
+        DoctorSummaryDTO doctorDTO = new DoctorSummaryDTO();
+        doctorDTO.setUserId(doctor.getUserId());
+        doctorDTO.setName(doctor.getName());
+        doctorDTO.setPosition(doctor.getPosition());
+        doctorDTO.setDegree(doctor.getDegree());
+
+        PatientSummaryDTO patientDTO = new PatientSummaryDTO();
+        patientDTO.setName(patient.getName());
+        patientDTO.setEmail(patient.getEmail());
+        patientDTO.setPhoneNumber(patient.getPhoneNumber());
+
+        AppointmentDetailDTO appointmentDTO = new AppointmentDetailDTO();
+        appointmentDTO.setAppointmentID(appointment.getAppointmentID());
+        appointmentDTO.setTime(appointment.getTime());
+        appointmentDTO.setStatus(appointment.getStatus());
+        appointmentDTO.setNote(appointment.getNote());
+        appointmentDTO.setCreatorId(appointment.getCreatorId());
+        appointmentDTO.setCreatedAt(appointment.getCreatedAt());
+
+        appointmentDTO.setDoctor(doctorDTO);
+        appointmentDTO.setPatientInfo(patientDTO);
+
+        return appointmentDTO;
+    }
+
+    @Transactional
+    public void deleteAppointment(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+        appointmentRepository.delete(appointment);
     }
 }
