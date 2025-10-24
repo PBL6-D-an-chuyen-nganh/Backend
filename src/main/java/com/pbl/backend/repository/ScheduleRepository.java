@@ -8,4 +8,5 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     List<Schedule> findByDoctorUserIdAndWorkDateAfter(Long doctorId, LocalDate date);
+    void deleteByDoctor_UserIdAndWorkDateIn(Long doctorId, List<LocalDate> dates);
 }
