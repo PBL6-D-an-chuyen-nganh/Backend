@@ -28,6 +28,7 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final DoctorService doctorService;
+    private final EmailService emailService;
 
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
@@ -81,7 +82,14 @@ public class AppointmentService {
         newAppointment.setCreatedAt(LocalDateTime.now());
         newAppointment.setCreatorId(creatorId);
 
-        return appointmentRepository.save(newAppointment);
+        Appointment savedAppointment = appointmentRepository.save(newAppointment);
+
+        try {
+            emailService.sendAppointmentConfirmationEmail(savedAppointment);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return savedAppointment;
     }
 
     public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId) {
@@ -130,6 +138,11 @@ public class AppointmentService {
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+        try {
+            emailService.sendAppointmentCancellationEmail(appointment);
+        } catch (Exception e) {
+            System.err.println("Sắp xoá lịch hẹn ID: " + appointmentId + " nhưng gửi email huỷ thất bại: " + e.getMessage());
+        }
         appointmentRepository.delete(appointment);
     }
 }

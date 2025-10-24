@@ -48,7 +48,6 @@ public class AuthController {
     @Autowired
     private EmailService mailService;
 
-    // Đăng nhập -> tạo JWT token
     @PostMapping("/login")
     public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest request) throws Exception {
         this.authenticate(request.getEmail(), request.getPassword());
@@ -216,7 +215,6 @@ public class AuthController {
             return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
         }
 
-        // Clear OTP cũ + tạo OTP mới
         otpService.clearOtp(request.getEmail());
         String newOtp = otpService.generateOTP(request.getEmail());
 
