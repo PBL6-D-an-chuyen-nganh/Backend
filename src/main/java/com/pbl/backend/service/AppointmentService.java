@@ -134,6 +134,28 @@ public class AppointmentService {
         return appointmentDTO;
     }
 
+    public AppointmentListResponseDTO getAppointmentsByDoctorIdAndDate(Long doctorId, LocalDate date) {
+        if (date == null) {
+            throw new RuntimeException("Vui lòng cung cấp ngày cụ thể.");
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        List<Appointment> appointmentEntities = appointmentRepository
+                .findByDoctor_UserIdAndTimeBetween(doctorId, startOfDay, endOfDay);
+
+        List<AppointmentDetailDTO> appointmentDTOs = appointmentEntities
+                .stream()
+                .map(this::convertToDetailDTO)
+                .collect(Collectors.toList());
+
+        long totalAppointments = appointmentEntities.size();
+
+        return new AppointmentListResponseDTO(totalAppointments, appointmentDTOs);
+    }
+
     @Transactional
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
