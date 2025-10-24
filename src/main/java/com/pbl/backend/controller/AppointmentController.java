@@ -5,9 +5,12 @@ import com.pbl.backend.dto.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -40,5 +43,14 @@ public class AppointmentController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByDoctorIdAndDate(
+            @PathVariable Long doctorId,
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        AppointmentListResponseDTO response = appointmentService.getAppointmentsByDoctorIdAndDate(doctorId, date);
+        return ResponseEntity.ok(response);
     }
 }
