@@ -1,11 +1,14 @@
 package com.pbl.backend.service;
 
+import com.pbl.backend.model.Appointment;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EmailService {
@@ -36,6 +39,66 @@ public class EmailService {
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+        }
+    }
+
+    public void sendAppointmentConfirmationEmail(Appointment appointment) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String patientEmail = appointment.getPatient().getEmail();
+            String patientName = appointment.getPatient().getName();
+            String doctorName = appointment.getDoctor().getName();
+            String doctorPosition = appointment.getDoctor().getPosition();
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
+            String appointmentTime = appointment.getTime().format(formatter);
+
+            helper.setTo(patientEmail);
+            helper.setSubject("Xác nhận Lịch hẹn Khám bệnh Thành công (ID: " + appointment.getAppointmentID() + ")");
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f9f9f9;'>"
+                    + "<div style='max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08);'>"
+                    + "<h1 style='color: #0056b3; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px;'>Xác nhận Lịch hẹn</h1>"
+                    + "<p style='font-size: 16px; color: #333;'>Xin chào, <strong>" + patientName + "</strong>,</p>"
+                    + "<p style='font-size: 16px; color: #333;'>Lịch hẹn của bạn đã được xác nhận thành công. Dưới đây là thông tin chi tiết:</p>"
+
+                    + "<div style='background-color: #f4f7fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>"
+                    + "<table style='width: 100%; border-collapse: collapse;'>"
+                    + "<tr>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #555; width: 120px;'><strong>Bác sĩ:</strong></td>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #000;'>" + doctorName + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #555;'><strong>Chức vụ:</strong></td>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #000;'>" + (doctorPosition != null ? doctorPosition : "N/A") + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #555;'><strong>Thời gian:</strong></td>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #000; font-weight: bold;'>" + appointmentTime + "</td>"
+                    + "</tr>"
+                    + "<tr>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #555; vertical-align: top;'><strong>Ghi chú:</strong></td>"
+                    + "<td style='padding: 10px; font-size: 16px; color: #000;'>" + (appointment.getNote() != null ? appointment.getNote() : "Không có") + "</td>"
+                    + "</tr>"
+                    + "</table>"
+                    + "</div>"
+
+                    + "<div style='padding: 15px; background-color: #fff8e1; border: 1px solid #ffecb3; border-radius: 8px; margin-top: 25px;'>"
+                    + "<h3 style='color: #f57c00; margin-top: 0;'>Lưu ý Quan trọng về Huỷ lịch:</h3>"
+                    + "<p style='font-size: 15px; color: #555;'>Quý khách chỉ có thể huỷ lịch hẹn <strong>trước 24 giờ</strong> so với thời gian khám đã đặt. Mọi yêu cầu huỷ sau thời gian này sẽ không được hệ thống chấp nhận.</p>"
+                    + "</div>"
+
+                    + "<p style='font-size: 16px; color: #333; margin-top: 25px;'>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi.</p>"
+                    + "<hr style='margin: 30px 0 15px 0; border: none; border-top: 1px solid #eee;'>"
+                    + "<p style='font-size: 12px; color: #aaa; text-align: center;'>Đây là email tự động, vui lòng không trả lời.</p>"
+                    + "</div></div>";
+
+            helper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Không thể gửi email xác nhận: " + e.getMessage(), e);
         }
     }
 }

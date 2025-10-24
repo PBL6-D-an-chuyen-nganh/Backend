@@ -28,6 +28,7 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final DoctorService doctorService;
+    private final EmailService emailService;
 
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
@@ -81,7 +82,14 @@ public class AppointmentService {
         newAppointment.setCreatedAt(LocalDateTime.now());
         newAppointment.setCreatorId(creatorId);
 
-        return appointmentRepository.save(newAppointment);
+        Appointment savedAppointment = appointmentRepository.save(newAppointment);
+
+        try {
+            emailService.sendAppointmentConfirmationEmail(savedAppointment);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return savedAppointment;
     }
 
     public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId) {
