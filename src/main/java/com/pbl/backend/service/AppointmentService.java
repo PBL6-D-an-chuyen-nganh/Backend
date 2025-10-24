@@ -167,4 +167,16 @@ public class AppointmentService {
         }
         appointmentRepository.delete(appointment);
     }
+    @Transactional
+    public void deleteAppointmentByDoctor(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+        try {
+            emailService.sendAppointmentDoctorCancellationEmail(appointment);
+        } catch (Exception e) {
+            System.err.println("Sắp xoá lịch hẹn ID: " + appointmentId + " nhưng gửi email huỷ thất bại: " + e.getMessage());
+        }
+        appointmentRepository.delete(appointment);
+    }
+
 }

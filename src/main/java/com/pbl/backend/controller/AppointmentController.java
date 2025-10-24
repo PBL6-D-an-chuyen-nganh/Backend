@@ -45,6 +45,16 @@ public class AppointmentController {
         }
     }
 
+    @DeleteMapping("/by-doctor/{appointmentId}")
+    public ResponseEntity<String> deleteAppointmentByDoctor(@PathVariable Long appointmentId) {
+        try {
+            appointmentService.deleteAppointmentByDoctor(appointmentId);
+            return ResponseEntity.ok("Đã xoá tất cả lịch hẹn của bác sĩ với ID: " + appointmentId + " thành công.");
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByDoctorIdAndDate(
             @PathVariable Long doctorId,
