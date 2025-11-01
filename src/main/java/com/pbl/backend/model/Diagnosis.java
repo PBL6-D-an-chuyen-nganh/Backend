@@ -23,24 +23,13 @@ public class Diagnosis {
     @JoinColumn(name = "recordID")
     private MedicalRecord medicalRecord;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctorID")
     private Doctor doctor;
 
-    //@OneToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "imageID")
-    //private ImageEntity image;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aiID")
-    private AIDiagnosis aiDiagnosis;
-
     private String disease;
 
     private LocalDate dateOfDiagnosis;
-
-    private String severity;
 
     @Column(length = 4000)
     private String doctorNotes;
