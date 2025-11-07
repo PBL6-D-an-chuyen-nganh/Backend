@@ -20,10 +20,9 @@ public class AppointmentScheduler {
     @Scheduled(fixedRate = 60 * 60 * 1000)
     public void updateAppointmentStatuses() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime next24Hours = now.plusHours(24);
 
-        List<Appointment> appointments = appointmentRepository.findByStatusAndTimeBetween(
-                "active", now, next24Hours
+        List<Appointment> appointments = appointmentRepository.findByStatusAndTimeBefore(
+                "active", now
         );
 
         for (Appointment appointment : appointments) {
