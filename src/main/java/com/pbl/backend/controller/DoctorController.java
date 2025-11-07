@@ -1,8 +1,8 @@
 package com.pbl.backend.controller;
 
 import com.pbl.backend.dto.DoctorDTO;
+import com.pbl.backend.dto.DoctorSummaryDTO;
 import com.pbl.backend.dto.PagedResponse;
-import com.pbl.backend.model.Doctor;
 import com.pbl.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -91,8 +91,8 @@ public class DoctorController {
     }
 
     @GetMapping("/by-specialty")
-    public ResponseEntity<List<Doctor>> getDoctorsBySpecialty(@RequestParam Integer specialtyId) {
-        List<Doctor> doctors = doctorService.getDoctorsBySpecialty(specialtyId);
+    public ResponseEntity<List<DoctorSummaryDTO>> getDoctorsBySpecialty(@RequestParam Integer specialtyId) {
+        List<DoctorSummaryDTO> doctors = doctorService.getDoctorsBySpecialty(specialtyId);
         return ResponseEntity.ok(doctors);
     }
 
