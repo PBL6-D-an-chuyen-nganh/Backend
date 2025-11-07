@@ -74,11 +74,8 @@ public class AppointmentService {
 
         long hoursUntilAppointment = Duration.between(now, requestedTime).toHours();
 
-        if (hoursUntilAppointment > 24) {
-            newAppointment.setStatus("active");
-        } else {
-            newAppointment.setStatus("inactive");
-        }
+        newAppointment.setStatus("active");
+
         newAppointment.setCreatedAt(LocalDateTime.now());
         newAppointment.setCreatorId(creatorId);
 
@@ -178,5 +175,4 @@ public class AppointmentService {
         }
         appointmentRepository.delete(appointment);
     }
-
 }
