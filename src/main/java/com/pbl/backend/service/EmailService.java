@@ -84,12 +84,6 @@ public class EmailService {
                     + "</tr>"
                     + "</table>"
                     + "</div>"
-
-                    + "<div style='padding: 15px; background-color: #fff8e1; border: 1px solid #ffecb3; border-radius: 8px; margin-top: 25px;'>"
-                    + "<h3 style='color: #f57c00; margin-top: 0;'>Lưu ý Quan trọng về Huỷ lịch:</h3>"
-                    + "<p style='font-size: 15px; color: #555;'>Quý khách chỉ có thể huỷ lịch hẹn <strong>trước 24 giờ</strong> so với thời gian khám đã đặt. Mọi yêu cầu huỷ sau thời gian này sẽ không được hệ thống chấp nhận.</p>"
-                    + "</div>"
-
                     + "<p style='font-size: 16px; color: #333; margin-top: 25px;'>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi.</p>"
                     + "<hr style='margin: 30px 0 15px 0; border: none; border-top: 1px solid #eee;'>"
                     + "<p style='font-size: 12px; color: #aaa; text-align: center;'>Đây là email tự động, vui lòng không trả lời.</p>"

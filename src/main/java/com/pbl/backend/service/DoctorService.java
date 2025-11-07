@@ -1,19 +1,20 @@
 package com.pbl.backend.service;
 
 import com.pbl.backend.dto.DoctorDTO;
+import com.pbl.backend.dto.DoctorSummaryDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Schedule;
 import com.pbl.backend.repository.AppointmentRepository;
 import com.pbl.backend.repository.DoctorRepository;
 import com.pbl.backend.repository.ScheduleRepository;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import jakarta.persistence.criteria.Predicate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,10 +41,14 @@ public class DoctorService {
                 .orElse(null);
     }
 
-    public List<Doctor> getDoctorsBySpecialty(Integer specialtyId) {
+    public List<DoctorSummaryDTO> getDoctorsBySpecialty(Integer specialtyId) {
         String specialtyName = getSpecialtyNameById(specialtyId);
 
-        return doctorRepository.findBySpecialty(specialtyName);
+        List<Doctor> doctors = doctorRepository.findBySpecialty(specialtyName);
+
+        return doctors.stream()
+                .map(DoctorSummaryDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     public Page<DoctorDTO> searchDoctors(String name, String degree, String position, Pageable pageable) {
