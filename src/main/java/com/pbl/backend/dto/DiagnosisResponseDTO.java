@@ -16,6 +16,7 @@ public class DiagnosisResponseDTO {
     private String doctorNotes;
     private String doctorName;
     private String specialty;
+    private String degree;
 
     public DiagnosisResponseDTO(Diagnosis diagnosis) {
         this.diagnosisID = diagnosis.getDiagnosisID();
@@ -23,6 +24,7 @@ public class DiagnosisResponseDTO {
         if (diagnosis.getDoctor() != null) {
             this.doctorName = diagnosis.getDoctor().getName();
             this.specialty = diagnosis.getDoctor().getSpecialty();
+            this.degree = diagnosis.getDoctor().getDegree();
         }
 
         if (diagnosis.getMedicalRecord().getPatient() != null) {
