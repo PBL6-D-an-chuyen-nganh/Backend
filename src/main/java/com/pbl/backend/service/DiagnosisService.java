@@ -1,5 +1,6 @@
 package com.pbl.backend.service;
 
+import com.pbl.backend.dto.DiagnosisListDTO;
 import com.pbl.backend.dto.DiagnosisRequestDTO;
 import com.pbl.backend.dto.DiagnosisResponseDTO;
 import com.pbl.backend.dto.PatientListDTO;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,6 +92,14 @@ public class DiagnosisService {
         List<Diagnosis> diagnoses = diagnosisRepository.findAllByDoctorUserIdWithDetails(doctorUserId);
         return diagnoses.stream()
                 .map(PatientListDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<DiagnosisListDTO> getDiagnosesByDoctorIdAndDate(Long doctorUserId, LocalDate date) {
+        List<Diagnosis> diagnoses = diagnosisRepository.findByDoctorUserIdAndDateOfDiagnosis(doctorUserId, date);
+
+        return diagnoses.stream()
+                .map(DiagnosisListDTO::new)
                 .collect(Collectors.toList());
     }
 }

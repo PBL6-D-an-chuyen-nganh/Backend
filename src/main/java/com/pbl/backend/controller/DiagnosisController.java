@@ -1,6 +1,7 @@
 // DiagnosisController.java
 package com.pbl.backend.controller;
 
+import com.pbl.backend.dto.DiagnosisListDTO;
 import com.pbl.backend.dto.DiagnosisRequestDTO;
 import com.pbl.backend.dto.DiagnosisResponseDTO;
 import com.pbl.backend.dto.PatientListDTO;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -42,4 +44,18 @@ public class DiagnosisController {
         List<PatientListDTO> patientList = diagnosisService.getPatientListByDoctorId(doctorUserId);
         return ResponseEntity.ok(patientList);
     }
+
+    @GetMapping("/doctors/{doctorUserId}/diagnosis-list")
+    public ResponseEntity<List<DiagnosisListDTO>> getDiagnosesByDoctorAndDate(
+            @PathVariable Long doctorUserId,
+            @RequestParam(required = false) LocalDate date) {
+
+        if (date == null) {
+            date = LocalDate.now();
+        }
+
+        List<DiagnosisListDTO> diagnosesList = diagnosisService.getDiagnosesByDoctorIdAndDate(doctorUserId, date);
+        return ResponseEntity.ok(diagnosesList);
+    }
+
 }

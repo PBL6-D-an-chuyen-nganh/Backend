@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Data
 public class PatientListDTO {
     private String name;
-    private String disease;
+    private String gender;
     private LocalDate dateOfDiagnosis;
     private Long patientId;
 
@@ -16,9 +16,8 @@ public class PatientListDTO {
         if (diagnosis.getMedicalRecord().getPatient() != null) {
             this.patientId = diagnosis.getMedicalRecord().getPatient().getPatientId();
             this.name = diagnosis.getMedicalRecord().getPatient().getName();
+            this.gender = diagnosis.getMedicalRecord().getPatient().getGender();
         }
-
-        this.disease = diagnosis.getDisease();
         this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
     }
 }
