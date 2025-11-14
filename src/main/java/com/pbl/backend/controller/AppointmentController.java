@@ -1,5 +1,6 @@
 package com.pbl.backend.controller;
 
+import com.pbl.backend.dto.AppointmentInfoForDiagDTO;
 import com.pbl.backend.dto.AppointmentListResponseDTO;
 import com.pbl.backend.dto.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
@@ -63,4 +64,11 @@ public class AppointmentController {
         AppointmentListResponseDTO response = appointmentService.getAppointmentsByDoctorIdAndDate(doctorId, date);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{appointmentId}")
+    public ResponseEntity<AppointmentInfoForDiagDTO> getAppointmentById(@PathVariable Long appointmentId) {
+        AppointmentInfoForDiagDTO appointment = appointmentService.getAppointmentById(appointmentId);
+        return ResponseEntity.ok(appointment);
+    }
+
 }

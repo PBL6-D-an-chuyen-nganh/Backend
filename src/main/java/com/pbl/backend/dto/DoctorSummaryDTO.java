@@ -9,6 +9,7 @@ public class DoctorSummaryDTO {
     private String name;
     private String position;
     private String degree;
+    private String specialty;
 
     public static DoctorSummaryDTO fromEntity(Doctor doctor) {
         DoctorSummaryDTO dto = new DoctorSummaryDTO();
@@ -16,6 +17,7 @@ public class DoctorSummaryDTO {
         dto.setName(doctor.getName());
         dto.setPosition(doctor.getPosition());
         dto.setDegree(doctor.getDegree());
+        dto.setSpecialty(doctor.getSpecialty());
         return dto;
     }
 }
