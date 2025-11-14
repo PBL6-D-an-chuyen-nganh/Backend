@@ -175,4 +175,30 @@ public class AppointmentService {
         }
         appointmentRepository.delete(appointment);
     }
+
+    public AppointmentInfoForDiagDTO getAppointmentById(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+
+        AppointmentInfoForDiagDTO dto = new AppointmentInfoForDiagDTO();
+        dto.setAppointmentID(appointment.getAppointmentID());
+
+        Doctor doctor = appointment.getDoctor();
+        DoctorSummaryDTO doctorDTO = new DoctorSummaryDTO();
+        doctorDTO.setUserId(doctor.getUserId());
+        doctorDTO.setName(doctor.getName());
+        doctorDTO.setSpecialty(doctor.getSpecialty());
+
+        dto.setDoctor(doctorDTO);
+
+        Patient patient = appointment.getPatient();
+        PatientSummaryDTO patientDTO = new PatientSummaryDTO();
+        patientDTO.setId(patient.getPatientId());
+        patientDTO.setName(patient.getName());
+        patientDTO.setGender(patient.getGender());
+
+        dto.setPatientInfo(patientDTO);
+
+        return dto;
+    }
 }
