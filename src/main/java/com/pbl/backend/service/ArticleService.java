@@ -5,8 +5,9 @@ import com.pbl.backend.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ArticleService {
@@ -24,4 +25,8 @@ public class ArticleService {
     public Page<Article> searchArticles(String keyword, Pageable pageable) {
         return articleRepository.findByTitleContainingIgnoreCase(keyword, pageable);
     }
+    public List<Article> getAllArticles() {
+        return articleRepository.findAll();
+    }
+
 }

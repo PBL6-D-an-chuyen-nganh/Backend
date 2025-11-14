@@ -4,9 +4,14 @@ import com.pbl.backend.dto.PagedResponse;
 import com.pbl.backend.model.Article;
 import com.pbl.backend.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/articles")
@@ -75,4 +80,9 @@ public class ArticleController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<Article>> getAllArticles() {
+        List<Article> articles = articleService.getAllArticles();
+        return ResponseEntity.ok(articles);
+    }
 }
