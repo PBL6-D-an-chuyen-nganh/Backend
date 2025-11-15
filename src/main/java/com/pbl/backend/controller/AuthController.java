@@ -55,11 +55,14 @@ public class AuthController {
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getEmail());
         User user = this.userRepo.findByEmail(request.getEmail());
 
-        String token = this.jwtTokenHelper.generateToken(userDetails, user.getUserId());
+        String accessToken = jwtTokenHelper.generateAccessToken(userDetails, user.getUserId());
+        String refreshToken = jwtTokenHelper.generateRefreshToken(userDetails, user.getUserId());
 
         JwtAuthResponse response = new JwtAuthResponse();
-        response.setToken(token);
+        response.setToken(accessToken);
+        response.setRefreshToken(refreshToken);
         response.setUser(UserDTO.fromEntity(user));
+
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -81,7 +84,6 @@ public class AuthController {
         try {
             User user = userRepo.findByEmail(request.getEmail());
             if (user != null) {
-                // Xử lý user đã tồn tại
                 if ("INACTIVE".equals(user.getAuthStatus())) {
                     otpService.clearOtp(request.getEmail());
                     String otp = otpService.generateOTP(request.getEmail());
@@ -97,7 +99,6 @@ public class AuthController {
                 );
             }
 
-            // Tạo user mới
             UserDTO userDTO = new UserDTO();
             userDTO.setEmail(request.getEmail());
             userDTO.setName(request.getName());
@@ -157,7 +158,6 @@ public class AuthController {
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    // Lấy user hiện tại từ token
     @GetMapping("/current-user")
     public ResponseEntity<?> getUser(Principal principal) {
         if (principal == null) {
@@ -167,7 +167,6 @@ public class AuthController {
         return new ResponseEntity<>(UserDTO.fromEntity(user), HttpStatus.OK);
     }
 
-    // Logout (invalidate token)
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         if (token != null && token.startsWith("Bearer ")) {

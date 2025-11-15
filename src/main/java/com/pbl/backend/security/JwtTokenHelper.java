@@ -1,12 +1,13 @@
 package com.pbl.backend.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
@@ -14,65 +15,119 @@ import java.util.function.Function;
 @Component
 public class JwtTokenHelper {
 
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
-    private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.access-token-expire-ms}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expire-ms}")
+    private long refreshTokenExpiration;
+
+    private Key secretKey;
+
     private final Set<String> invalidatedTokens = new HashSet<>();
 
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }
 
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
-    }
-
-    // 🔹 Tạo token, chứa cả email (subject) và userId
-    public String generateToken(UserDetails userDetails, Long userId) {
-        Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, userDetails.getUsername(), userId);
-    }
-
-    // 🔹 Lấy userId từ token
-    public Long getUserIdFromToken(String token) {
-        return getClaimFromToken(token, claims -> Long.parseLong(claims.get("userId").toString()));
-    }
-
-    // 🔹 Lấy username (email) từ token
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String subject, Long userId) {
-        claims.put("userId", userId); // Thêm userId vào claims
+    public Date getExpirationFromToken(String token) {
+        return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public <T> T getClaimFromToken(String token, Function<Claims, T> resolver) {
+        final Claims claims = getAllClaims(token);
+        return resolver.apply(claims);
+    }
+
+    private Claims getAllClaims(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+
+    public String generateAccessToken(UserDetails userDetails, Long userId) {
+        return generateToken(userDetails, userId, accessTokenExpiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails, Long userId) {
+        return generateToken(userDetails, userId, refreshTokenExpiration);
+    }
+
+    private String generateToken(UserDetails userDetails, Long userId, long expirationMs) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+
+        long now = System.currentTimeMillis();
+
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject) // subject = email/username
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(secretKey)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + expirationMs))
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    // 🔹 Validate token
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername())
-                && !isTokenExpired(token)
-                && !invalidatedTokens.contains(token));
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+
+        try {
+            String username = getUsernameFromToken(token);
+
+            return username.equals(userDetails.getUsername())
+                    && !isTokenExpired(token)
+                    && !invalidatedTokens.contains(token);
+
+        } catch (ExpiredJwtException e) {
+            System.out.println("Token expired");
+        } catch (UnsupportedJwtException e) {
+            System.out.println("Token unsupported");
+        } catch (MalformedJwtException e) {
+            System.out.println("Token malformed");
+        } catch (SignatureException e) {
+            System.out.println("Invalid token signature");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Token claims string is empty");
+        }
+
+        return false;
     }
+
+    public boolean isTokenExpired(String token) {
+        return getExpirationFromToken(token).before(new Date());
+    }
+
+
 
     public void invalidateToken(String token) {
         invalidatedTokens.add(token);
+    }
+
+    public boolean isInvalidated(String token) {
+        return invalidatedTokens.contains(token);
+    }
+
+
+    public String rotateRefreshToken(String oldRefreshToken, UserDetails userDetails, Long userId) {
+        invalidateToken(oldRefreshToken);
+        return generateRefreshToken(userDetails, userId);
     }
 }

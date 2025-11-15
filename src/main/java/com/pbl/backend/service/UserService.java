@@ -47,7 +47,6 @@ public class UserService {
         return UserDTO.fromEntity(updatedUser);
     }
 
-    // Lấy user theo ID
     public UserDTO getUserById(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
@@ -56,14 +55,12 @@ public class UserService {
         return UserDTO.fromEntity(user);
     }
 
-    // Lấy tất cả user
     public List<UserDTO> getAllUser() {
         return userRepo.findAll().stream()
                 .map(UserDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    // Xóa user
     public void deleteUser(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
