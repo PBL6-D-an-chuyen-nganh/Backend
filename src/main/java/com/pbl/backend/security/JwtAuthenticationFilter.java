@@ -46,7 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String requestToken = request.getHeader("Authorization");
 
-        // Nếu không có token hoặc token sai định dạng → bỏ qua
         if (requestToken == null || !requestToken.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
