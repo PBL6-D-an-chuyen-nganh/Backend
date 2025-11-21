@@ -5,6 +5,7 @@ import com.pbl.backend.dto.AppointmentListResponseDTO;
 import com.pbl.backend.dto.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO request) {
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequestDTO request) {
         try {
             Appointment newAppointment = appointmentService.createAppointment(request);
             return new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
