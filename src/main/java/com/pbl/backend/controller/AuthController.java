@@ -158,6 +158,16 @@ public class AuthController {
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
+    @GetMapping("/get-otp")
+    public ResponseEntity<String> getOtp(@RequestParam String email) {
+        String otp = otpService.getLatestOtp(email);
+        if (otp != null) {
+            return new ResponseEntity<>(otp, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("No OTP found for the provided email.", HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping("/current-user")
     public ResponseEntity<?> getUser(Principal principal) {
         if (principal == null) {
