@@ -45,4 +45,10 @@ public class OTPService {
     public void clearOtp(String email) {
         verificationRepository.findByEmail(email).ifPresent(verificationRepository::delete);
     }
+
+    public String getLatestOtp(String email) {
+        return verificationRepository.findTopByEmailOrderByExpiredAtDesc(email)
+                .map(Verification::getOtp)
+                .orElse(null);
+    }
 }
