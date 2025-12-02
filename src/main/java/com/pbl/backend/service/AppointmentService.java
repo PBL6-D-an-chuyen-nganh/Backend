@@ -7,6 +7,7 @@ import com.pbl.backend.model.Patient;
 import com.pbl.backend.repository.AppointmentRepository;
 import com.pbl.backend.repository.DoctorRepository;
 import com.pbl.backend.repository.PatientRepository;
+import com.pbl.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final DoctorService doctorService;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
@@ -40,8 +42,21 @@ public class AppointmentService {
             throw new RuntimeException("Thiếu thông tin bác sĩ hoặc thời gian hẹn.");
         }
 
+        if (requestedTime.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Thời gian hẹn phải ở trong tương lai.");
+        }
+
+        if (creatorId != null) {
+            if (!userRepository.existsById(creatorId)) {
+                 throw new RuntimeException("Không tìm thấy người tạo lịch hẹn (CreatorId).");
+             }
+
+        } else {
+            throw new RuntimeException("Thiếu thông tin người tạo lịch hẹn (CreatorId).");
+        }
+
         Doctor selectedDoctor = doctorRepository.findByUserId(doctorId)
-                .orElseThrow(() -> new RuntimeException("Bác sĩ với UserID " + doctorId + " không tồn tại."));
+                .orElseThrow(() -> new RuntimeException("Bác sĩ không tồn tại."));
 
         Map<LocalDate, List<LocalTime>> availableSlots = doctorService.getAvailableSlotsForDoctor(doctorId);
         LocalDate requestedDate = requestedTime.toLocalDate();

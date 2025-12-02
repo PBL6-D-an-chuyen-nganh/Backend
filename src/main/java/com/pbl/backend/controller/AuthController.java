@@ -49,11 +49,33 @@ public class AuthController {
     private EmailService mailService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest request) throws Exception {
-        this.authenticate(request.getEmail(), request.getPassword());
+    public ResponseEntity<?> createToken(@RequestBody JwtAuthRequest request) throws Exception {
+        User user = userRepo.findByEmail(request.getEmail());
+
+        if (user == null) {
+            return new ResponseEntity<>(
+                    "Email is not registered !!",
+                    HttpStatus.NOT_FOUND
+            );
+        }
+
+        if ("INACTIVE".equals(user.getAuthStatus())) {
+            return new ResponseEntity<>(
+                    "Email is not verified. Please verify your email before logging in.",
+                    HttpStatus.FORBIDDEN
+            );
+        }
+
+        try {
+            this.authenticate(request.getEmail(), request.getPassword());
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(
+                    "Invalid email or password !!",
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
 
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getEmail());
-        User user = this.userRepo.findByEmail(request.getEmail());
 
         String accessToken = jwtTokenHelper.generateAccessToken(userDetails, user.getUserId());
         String refreshToken = jwtTokenHelper.generateRefreshToken(userDetails, user.getUserId());
@@ -63,9 +85,19 @@ public class AuthController {
         response.setRefreshToken(refreshToken);
         response.setUser(UserDTO.fromEntity(user));
 
+        String roleMessage = "";
+        if ("ROLE_USER".equals(user.getRole())) {
+            roleMessage = "User login successfully";
+        } else if ("ROLE_DOCTOR".equals(user.getRole())) {
+            roleMessage = "Doctor login successfully";
+        } else {
+            roleMessage = "Đăng nhập thành công với vai trò " + user.getRole();
+        }
+        response.setMessage(roleMessage);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     private void authenticate(String email, String password) throws Exception {
         UsernamePasswordAuthenticationToken authenticationToken =
