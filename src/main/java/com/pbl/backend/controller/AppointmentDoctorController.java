@@ -1,6 +1,5 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.AppointmentInfoForDiagDTO;
 import com.pbl.backend.dto.AppointmentListResponseDTO;
 import com.pbl.backend.dto.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
@@ -15,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/appointments")
+@RequestMapping("/api/doctor/appointments")
 @RequiredArgsConstructor
-public class AppointmentController {
+public class AppointmentDoctorController {
 
     private final AppointmentService appointmentService;
 
@@ -38,16 +37,6 @@ public class AppointmentController {
     }
 
     @DeleteMapping("/{appointmentId}")
-    public ResponseEntity<String> deleteAppointment(@PathVariable Long appointmentId) {
-        try {
-            appointmentService.deleteAppointment(appointmentId);
-            return ResponseEntity.ok("Đã xoá lịch hẹn với ID: " + appointmentId + " thành công.");
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @DeleteMapping("/by-doctor/{appointmentId}")
     public ResponseEntity<String> deleteAppointmentByDoctor(@PathVariable Long appointmentId) {
         try {
             appointmentService.deleteAppointmentByDoctor(appointmentId);
@@ -57,19 +46,13 @@ public class AppointmentController {
         }
     }
 
-    @GetMapping("/doctor/{doctorId}")
+    @GetMapping("/{doctorId}")
     public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByDoctorIdAndDate(
             @PathVariable Long doctorId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
         AppointmentListResponseDTO response = appointmentService.getAppointmentsByDoctorIdAndDate(doctorId, date);
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{appointmentId}")
-    public ResponseEntity<AppointmentInfoForDiagDTO> getAppointmentById(@PathVariable Long appointmentId) {
-        AppointmentInfoForDiagDTO appointment = appointmentService.getAppointmentById(appointmentId);
-        return ResponseEntity.ok(appointment);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.pbl.backend.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import lombok.*;
 
@@ -16,7 +15,6 @@ public class AppointmentRequestDTO {
     @Valid
     private PatientDTO patientInfo;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
     private String note;
     private Long doctorId;
