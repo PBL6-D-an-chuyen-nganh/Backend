@@ -40,4 +40,7 @@ public class Appointment {
     private Long creatorId;
 
     private LocalDateTime createdAt;
+
+    @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Diagnosis diagnosis;
 }

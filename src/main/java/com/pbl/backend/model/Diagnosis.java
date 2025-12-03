@@ -1,5 +1,6 @@
 package com.pbl.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,4 +36,9 @@ public class Diagnosis {
     private String doctorNotes;
 
     private String treatmentPlan;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
+    @JsonIgnore
+    private Appointment appointment;
 }

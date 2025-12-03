@@ -11,4 +11,5 @@ public class DiagnosisRequestDTO {
     private LocalDate dateOfDiagnosis;
     private String doctorNotes;
     private String treatmentPlan;
+    private Long appointmentId;
 }

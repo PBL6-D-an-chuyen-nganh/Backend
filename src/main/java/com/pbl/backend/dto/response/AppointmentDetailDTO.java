@@ -13,4 +13,6 @@ public class AppointmentDetailDTO {
     private String note;
     private Long creatorId;
     private LocalDateTime createdAt;
+    private boolean hasDiagnosis;
+    private Long diagnosisId;
 }
