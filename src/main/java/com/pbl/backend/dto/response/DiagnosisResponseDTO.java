@@ -17,6 +17,7 @@ public class DiagnosisResponseDTO {
     private String doctorName;
     private String specialty;
     private String degree;
+    private String treatmentPlan;
 
     public DiagnosisResponseDTO(Diagnosis diagnosis) {
         this.diagnosisID = diagnosis.getDiagnosisID();
@@ -36,5 +37,6 @@ public class DiagnosisResponseDTO {
         this.disease = diagnosis.getDisease();
         this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
         this.doctorNotes = diagnosis.getDoctorNotes();
+        this.treatmentPlan = diagnosis.getTreatmentPlan();
     }
 }
