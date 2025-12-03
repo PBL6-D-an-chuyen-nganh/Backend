@@ -26,12 +26,6 @@ public class DiagnosisDoctorController {
         return new ResponseEntity<>(createdDiagnosis, HttpStatus.CREATED);
     }
 
-//    @GetMapping("/patients/{patientId}/diagnoses")
-//    public ResponseEntity<List<DiagnosisResponseDTO>> getDiagnosesByPatientId(@PathVariable Long patientId) {
-//        List<DiagnosisResponseDTO> diagnoses = diagnosisService.getDiagnosesByPatientId(patientId);
-//        return ResponseEntity.ok(diagnoses);
-//    }
-//
     @GetMapping("/{diagnosisId}")
     public ResponseEntity<DiagnosisResponseDTO> getDiagnosisById(@PathVariable Long diagnosisId) {
         DiagnosisResponseDTO diagnosis = diagnosisService.getDiagnosisById(diagnosisId);
