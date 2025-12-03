@@ -159,6 +159,14 @@ public class AppointmentService {
         appointmentDTO.setDoctor(doctorDTO);
         appointmentDTO.setPatientInfo(patientDTO);
 
+        if (appointment.getDiagnosis() != null) {
+            appointmentDTO.setHasDiagnosis(true);
+            appointmentDTO.setDiagnosisId(appointment.getDiagnosis().getDiagnosisID()); // (Tùy chọn)
+        } else {
+            appointmentDTO.setHasDiagnosis(false);
+            appointmentDTO.setDiagnosisId(null);
+        }
+
         return appointmentDTO;
     }
 

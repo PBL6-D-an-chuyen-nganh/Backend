@@ -1,17 +1,11 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.response.DiagnosisListDTO;
 import com.pbl.backend.dto.request.DiagnosisRequestDTO;
+import com.pbl.backend.dto.response.DiagnosisListDTO;
 import com.pbl.backend.dto.response.DiagnosisResponseDTO;
 import com.pbl.backend.dto.response.PatientListDTO;
-import com.pbl.backend.model.Diagnosis;
-import com.pbl.backend.model.Doctor;
-import com.pbl.backend.model.MedicalRecord;
-import com.pbl.backend.model.Patient;
-import com.pbl.backend.repository.DiagnosisRepository;
-import com.pbl.backend.repository.DoctorRepository;
-import com.pbl.backend.repository.MedicalRecordRepository;
-import com.pbl.backend.repository.PatientRepository;
+import com.pbl.backend.model.*;
+import com.pbl.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,9 +24,9 @@ public class DiagnosisService {
     private MedicalRecordRepository medicalRecordRepository;
     @Autowired
     private DoctorRepository doctorRepository;
-
     @Autowired
     private PatientRepository patientRepository;
+    @Autowired AppointmentRepository appointmentRepository;
 
     @Transactional
     public DiagnosisResponseDTO createDiagnosis(DiagnosisRequestDTO requestDTO) {
@@ -41,6 +35,17 @@ public class DiagnosisService {
 
         Patient patient = patientRepository.findById(requestDTO.getPatientId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Patient với ID: " + requestDTO.getPatientId()));
+
+        if (requestDTO.getAppointmentId() == null) {
+            throw new IllegalArgumentException("Appointment ID không được để trống khi tạo chẩn đoán.");
+        }
+
+        Appointment appointment = appointmentRepository.findById(requestDTO.getAppointmentId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Appointment với ID: " + requestDTO.getAppointmentId()));
+
+        if (appointment.getDiagnosis() != null) {
+            throw new RuntimeException("Lịch hẹn này đã có chẩn đoán rồi.");
+        }
 
         MedicalRecord medicalRecord = patient.getMedicalRecord();
 
@@ -59,6 +64,11 @@ public class DiagnosisService {
         diagnosis.setDateOfDiagnosis(requestDTO.getDateOfDiagnosis());
         diagnosis.setDoctorNotes(requestDTO.getDoctorNotes());
         diagnosis.setTreatmentPlan(requestDTO.getTreatmentPlan());
+
+        diagnosis.setAppointment(appointment);
+
+        appointment.setStatus("completed");
+        appointmentRepository.save(appointment);
 
         Diagnosis savedDiagnosis = diagnosisRepository.save(diagnosis);
 
