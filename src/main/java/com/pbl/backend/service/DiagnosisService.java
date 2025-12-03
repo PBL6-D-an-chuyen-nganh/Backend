@@ -58,6 +58,7 @@ public class DiagnosisService {
         diagnosis.setDisease(requestDTO.getDisease());
         diagnosis.setDateOfDiagnosis(requestDTO.getDateOfDiagnosis());
         diagnosis.setDoctorNotes(requestDTO.getDoctorNotes());
+        diagnosis.setTreatmentPlan(requestDTO.getTreatmentPlan());
 
         Diagnosis savedDiagnosis = diagnosisRepository.save(diagnosis);
 
