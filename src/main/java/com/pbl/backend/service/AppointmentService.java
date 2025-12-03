@@ -10,6 +10,10 @@ import com.pbl.backend.repository.DoctorRepository;
 import com.pbl.backend.repository.PatientRepository;
 import com.pbl.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,17 +109,28 @@ public class AppointmentService {
         return savedAppointment;
     }
 
-    public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId) {
-        List<Appointment> appointmentEntities = appointmentRepository.findByCreatorId(creatorId);
+    public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId, int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
-        List<AppointmentDetailDTO> appointmentDTOs = appointmentEntities
-                .stream()
-                .map(this::convertToDetailDTO)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        long totalAppointments = appointmentEntities.size();
+        Page<Appointment> appointmentsPage = appointmentRepository.findByCreatorId(creatorId, pageable);
 
-        return new AppointmentListResponseDTO(totalAppointments, appointmentDTOs);
+        List<AppointmentDetailDTO> content = appointmentsPage.getContent().stream()
+                .map(appointment -> convertToDetailDTO(appointment))
+                .toList();
+
+        AppointmentListResponseDTO response = new AppointmentListResponseDTO();
+        response.setContent(content);
+        response.setPageNo(appointmentsPage.getNumber());
+        response.setPageSize(appointmentsPage.getSize());
+        response.setTotalElements(appointmentsPage.getTotalElements());
+        response.setTotalPages(appointmentsPage.getTotalPages());
+        response.setLast(appointmentsPage.isLast());
+
+        return response;
     }
 
     private AppointmentDetailDTO convertToDetailDTO(Appointment appointment) {
@@ -147,26 +162,45 @@ public class AppointmentService {
         return appointmentDTO;
     }
 
-    public AppointmentListResponseDTO getAppointmentsByDoctorIdAndDate(Long doctorId, LocalDate date) {
+    public AppointmentListResponseDTO getAppointmentsByDoctorIdAndDate(
+            Long doctorId,
+            LocalDate date,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
         if (date == null) {
             throw new RuntimeException("Vui lòng cung cấp ngày cụ thể.");
         }
 
-        LocalDateTime startOfDay = date.atStartOfDay();
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
+        LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-        List<Appointment> appointmentEntities = appointmentRepository
-                .findByDoctor_UserIdAndTimeBetween(doctorId, startOfDay, endOfDay);
+        Page<Appointment> appointmentsPage = appointmentRepository
+                .findByDoctor_UserIdAndTimeBetween(doctorId, startOfDay, endOfDay, pageable);
 
-        List<AppointmentDetailDTO> appointmentDTOs = appointmentEntities
+
+        List<AppointmentDetailDTO> appointmentDTOs = appointmentsPage.getContent()
                 .stream()
                 .map(this::convertToDetailDTO)
                 .collect(Collectors.toList());
 
-        long totalAppointments = appointmentEntities.size();
+        AppointmentListResponseDTO response = new AppointmentListResponseDTO();
+        response.setContent(appointmentDTOs);
 
-        return new AppointmentListResponseDTO(totalAppointments, appointmentDTOs);
+        response.setPageNo(appointmentsPage.getNumber());
+        response.setPageSize(appointmentsPage.getSize());
+        response.setTotalElements(appointmentsPage.getTotalElements());
+        response.setTotalPages(appointmentsPage.getTotalPages());
+        response.setLast(appointmentsPage.isLast());
+
+        return response;
     }
 
     @Transactional

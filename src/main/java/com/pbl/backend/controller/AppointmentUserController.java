@@ -29,8 +29,16 @@ public class AppointmentUserController {
     }
 
     @GetMapping("/creator/{creatorId}")
-    public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByCreatorId(@PathVariable Long creatorId) {
-        AppointmentListResponseDTO response = appointmentService.getAppointmentsByCreatorId(creatorId);
+    public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByCreatorId(
+            @PathVariable Long creatorId,
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "size", defaultValue = "8", required = false) int size,
+
+            @RequestParam(value = "sortBy", defaultValue = "time", required = false) String sortBy,
+
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir
+    ) {
+        AppointmentListResponseDTO response = appointmentService.getAppointmentsByCreatorId(creatorId, page, size, sortBy, sortDir);
         return ResponseEntity.ok(response);
     }
 
