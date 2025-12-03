@@ -1,4 +1,4 @@
-package com.pbl.backend.dto;
+package com.pbl.backend.dto.response;
 
 import com.pbl.backend.model.Diagnosis;
 import lombok.Data;
@@ -6,18 +6,24 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class PatientListDTO {
-    private String name;
+public class DiagnosisListDTO {
+    private Long diagnosisID;
+    private Long patientId;
+    private String patientName;
     private String gender;
     private LocalDate dateOfDiagnosis;
-    private Long patientId;
 
-    public PatientListDTO(Diagnosis diagnosis) {
+
+    public DiagnosisListDTO(Diagnosis diagnosis) {
+
         if (diagnosis.getMedicalRecord().getPatient() != null) {
+            this.diagnosisID = diagnosis.getDiagnosisID();
             this.patientId = diagnosis.getMedicalRecord().getPatient().getPatientId();
-            this.name = diagnosis.getMedicalRecord().getPatient().getName();
+            this.patientName = diagnosis.getMedicalRecord().getPatient().getName();
             this.gender = diagnosis.getMedicalRecord().getPatient().getGender();
         }
+
         this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
     }
+
 }

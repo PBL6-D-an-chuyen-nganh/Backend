@@ -1,8 +1,8 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.DoctorDTO;
-import com.pbl.backend.dto.DoctorSummaryDTO;
-import com.pbl.backend.dto.PagedResponse;
+import com.pbl.backend.dto.response.DoctorDTO;
+import com.pbl.backend.dto.response.DoctorSummaryDTO;
+import com.pbl.backend.dto.response.PagedResponse;
 import com.pbl.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

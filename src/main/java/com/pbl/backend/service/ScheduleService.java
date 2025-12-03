@@ -1,7 +1,7 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.ScheduleRequestDTO;
-import com.pbl.backend.dto.WorkDaySelectionDTO;
+import com.pbl.backend.dto.request.ScheduleRequestDTO;
+import com.pbl.backend.dto.request.WorkDaySelectionDTO;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Schedule;
 import com.pbl.backend.repository.DoctorRepository;

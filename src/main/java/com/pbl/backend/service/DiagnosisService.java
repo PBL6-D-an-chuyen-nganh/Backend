@@ -1,9 +1,9 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.DiagnosisListDTO;
-import com.pbl.backend.dto.DiagnosisRequestDTO;
-import com.pbl.backend.dto.DiagnosisResponseDTO;
-import com.pbl.backend.dto.PatientListDTO;
+import com.pbl.backend.dto.response.DiagnosisListDTO;
+import com.pbl.backend.dto.request.DiagnosisRequestDTO;
+import com.pbl.backend.dto.response.DiagnosisResponseDTO;
+import com.pbl.backend.dto.response.PatientListDTO;
 import com.pbl.backend.model.Diagnosis;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.MedicalRecord;

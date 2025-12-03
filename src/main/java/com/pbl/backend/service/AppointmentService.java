@@ -1,6 +1,7 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.*;
+import com.pbl.backend.dto.request.AppointmentRequestDTO;
+import com.pbl.backend.dto.response.*;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Patient;

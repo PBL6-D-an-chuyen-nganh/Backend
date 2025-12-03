@@ -2,10 +2,11 @@ package com.pbl.backend.security;
 
 import com.pbl.backend.model.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -19,10 +20,16 @@ public class CustomUserDetails implements UserDetails {
         return user;
     }
 
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return new ArrayList<>();
+//    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return new ArrayList<>();
+        return List.of(new SimpleGrantedAuthority(user.getRole().toString()));
     }
+
 
     @Override
     public String getPassword() {

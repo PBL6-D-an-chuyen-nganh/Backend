@@ -10,8 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // Dùng cái này
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,21 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableMethodSecurity
-
+@EnableMethodSecurity // Thay thế cho EnableGlobalMethodSecurity
 public class SecurityConfig {
-
-    public static final String[] PUBLIC_URLS = {
-            "/api/v1/auth/**",
-            "/v3/api-docs",
-            "/v2/api-docs",
-            "/swagger-resources/**",
-            "/swagger-ui/**",
-            "/webjars/**",
-            "/api/payment/create",
-            "/payment-success",
-    };
 
     @Autowired
     private CustomUserDetailService customUserDetailService;
@@ -56,24 +42,43 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Đặt lên đầu cho rõ ràng
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        // --- Public Endpoints ---
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api/payment/create",
+                                "/payment-success",
+                                "/api/articles/**", // GET articles ai cũng xem được
+                                "/api/posts/**",
+                                "/api/doctors/**"
+                        ).permitAll()
+
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+                        .requestMatchers("/api/user/**").hasRole("USER")
+
+                        // --- Explicit Auth Logic ---
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
-                        //.anyRequest().authenticated()
-                        .anyRequest().permitAll())
+
+                        // --- Default ---
+                        .anyRequest().authenticated()
+                )
+
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.authenticationProvider(daoAuthenticationProvider());
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -92,5 +97,4 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
 }
