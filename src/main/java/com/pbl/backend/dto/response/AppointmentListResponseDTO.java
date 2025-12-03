@@ -10,6 +10,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentListResponseDTO {
-    private long total;
-    private List<AppointmentDetailDTO> appointments;
+    private List<AppointmentDetailDTO> content;
+    private int pageNo;
+    private int pageSize;
+    private long totalElements;
+    private int totalPages;
+    private boolean last;
 }

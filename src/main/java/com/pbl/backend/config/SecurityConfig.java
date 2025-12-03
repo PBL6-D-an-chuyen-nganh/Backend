@@ -45,7 +45,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Đặt lên đầu cho rõ ràng
 
                 .authorizeHttpRequests(auth -> auth
-                        // --- Public Endpoints ---
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/v3/api-docs/**",
@@ -53,7 +52,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api/payment/create",
                                 "/payment-success",
-                                "/api/articles/**", // GET articles ai cũng xem được
+                                "/api/articles/**",
                                 "/api/posts/**",
                                 "/api/doctors/**"
                         ).permitAll()
@@ -62,11 +61,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
                         .requestMatchers("/api/user/**").hasRole("USER")
 
-                        // --- Explicit Auth Logic ---
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
 
-                        // --- Default ---
                         .anyRequest().authenticated()
                 )
 
