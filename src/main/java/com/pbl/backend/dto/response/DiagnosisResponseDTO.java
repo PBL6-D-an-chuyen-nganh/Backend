@@ -18,6 +18,7 @@ public class DiagnosisResponseDTO {
     private String specialty;
     private String degree;
     private String treatmentPlan;
+    private Long appointmentId;
 
     public DiagnosisResponseDTO(Diagnosis diagnosis) {
         this.diagnosisID = diagnosis.getDiagnosisID();
@@ -38,5 +39,8 @@ public class DiagnosisResponseDTO {
         this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
         this.doctorNotes = diagnosis.getDoctorNotes();
         this.treatmentPlan = diagnosis.getTreatmentPlan();
+        if (diagnosis.getAppointment() != null) {
+            this.appointmentId = diagnosis.getAppointment().getAppointmentID();
+        }
     }
 }
