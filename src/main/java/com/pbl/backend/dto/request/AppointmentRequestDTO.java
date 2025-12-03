@@ -1,4 +1,4 @@
-package com.pbl.backend.dto;
+package com.pbl.backend.dto.request;
 
 import jakarta.validation.Valid;
 import lombok.*;

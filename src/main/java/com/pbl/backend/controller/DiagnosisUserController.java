@@ -1,6 +1,6 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.DiagnosisResponseDTO;
+import com.pbl.backend.dto.response.DiagnosisResponseDTO;
 import com.pbl.backend.service.DiagnosisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

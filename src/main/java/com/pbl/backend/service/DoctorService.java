@@ -1,7 +1,7 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.DoctorDTO;
-import com.pbl.backend.dto.DoctorSummaryDTO;
+import com.pbl.backend.dto.response.DoctorDTO;
+import com.pbl.backend.dto.response.DoctorSummaryDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Schedule;

@@ -1,4 +1,4 @@
-package com.pbl.backend.dto;
+package com.pbl.backend.dto.response;
 
 import lombok.Data;
 

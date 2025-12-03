@@ -1,6 +1,6 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.PostDTO;
+import com.pbl.backend.dto.response.PostDTO;
 import com.pbl.backend.model.Post;
 import com.pbl.backend.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;

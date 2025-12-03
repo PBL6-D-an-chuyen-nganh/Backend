@@ -1,4 +1,4 @@
-package com.pbl.backend.dto;
+package com.pbl.backend.dto.response;
 
 import com.pbl.backend.model.User;
 import lombok.AllArgsConstructor;

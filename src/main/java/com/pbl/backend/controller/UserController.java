@@ -1,7 +1,7 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.ApiResponse;
-import com.pbl.backend.dto.UserDTO;
+import com.pbl.backend.dto.response.ApiResponse;
+import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

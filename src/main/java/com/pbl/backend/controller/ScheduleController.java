@@ -1,6 +1,6 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.ScheduleRequestDTO;
+import com.pbl.backend.dto.request.ScheduleRequestDTO;
 import com.pbl.backend.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

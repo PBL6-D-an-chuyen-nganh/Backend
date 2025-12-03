@@ -1,6 +1,8 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.*;
+import com.pbl.backend.dto.request.*;
+import com.pbl.backend.dto.response.JwtAuthResponse;
+import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
 import com.pbl.backend.security.JwtTokenHelper;

@@ -1,6 +1,6 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.PagedResponse;
+import com.pbl.backend.dto.response.PagedResponse;
 import com.pbl.backend.model.Article;
 import com.pbl.backend.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;

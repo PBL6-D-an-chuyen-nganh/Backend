@@ -1,4 +1,4 @@
-package com.pbl.backend.dto;
+package com.pbl.backend.dto.request;
 
 import com.pbl.backend.model.Schedule; // Import model của bạn
 import lombok.Data;

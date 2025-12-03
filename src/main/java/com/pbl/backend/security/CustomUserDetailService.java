@@ -3,10 +3,14 @@ package com.pbl.backend.security;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CustomUserDetailService implements UserDetailsService {
@@ -15,12 +19,22 @@ public class CustomUserDetailService implements UserDetailsService {
     private UserRepository userRepo;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepo.findByEmail(email);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepo.findByEmail(username);
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + email);
+            throw new UsernameNotFoundException("User not found with email: " + username);
         }
-        return new CustomUserDetails(user);
+
+        // --- SỬA Ở ĐÂY ---
+        // Lấy đúng chuỗi "ROLE_USER" từ DB, KHÔNG thêm "ROLE_" đằng trước nữa
+        List<GrantedAuthority> authorities =
+                List.of(new SimpleGrantedAuthority(user.getRole().toString()));
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                authorities
+        );
     }
 
     public UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
@@ -30,5 +44,4 @@ public class CustomUserDetailService implements UserDetailsService {
         }
         return new CustomUserDetails(user);
     }
-
 }

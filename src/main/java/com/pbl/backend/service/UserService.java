@@ -1,6 +1,6 @@
 package com.pbl.backend.service;
 
-import com.pbl.backend.dto.UserDTO;
+import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
