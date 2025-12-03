@@ -1,7 +1,7 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.response.AppointmentListResponseDTO;
 import com.pbl.backend.dto.request.AppointmentRequestDTO;
+import com.pbl.backend.dto.response.AppointmentListResponseDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -73,5 +73,4 @@ public class AppointmentDoctorController {
         );
         return ResponseEntity.ok(response);
     }
-
 }
