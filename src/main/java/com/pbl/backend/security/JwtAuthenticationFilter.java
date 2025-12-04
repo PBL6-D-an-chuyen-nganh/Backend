@@ -33,12 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. Lấy token từ header
         String requestToken = request.getHeader("Authorization");
         String username = null;
         String token = null;
 
-        // 2. Kiểm tra format token
         if (requestToken != null && requestToken.startsWith("Bearer ")) {
             token = requestToken.substring(7);
             try {
@@ -53,11 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.error("Jwt validation error: {}", e.getMessage());
             }
         } else {
-            // Token không tồn tại hoặc không đúng định dạng -> Không làm gì cả, cứ cho đi tiếp
-            // Nếu route yêu cầu login, SecurityConfig sẽ chặn lại ở bước sau.
         }
 
-        // 3. Validate và set Context
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.customUserDetailService.loadUserByUsername(username);
 
@@ -66,7 +61,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Đăng nhập thành công cho request này
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
