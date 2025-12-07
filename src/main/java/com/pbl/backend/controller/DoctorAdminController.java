@@ -112,4 +112,10 @@ public class DoctorAdminController {
         DoctorDTO updatedDoctor = doctorService.updateDoctor(id, request);
         return ResponseEntity.ok(updatedDoctor);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
+        doctorService.deleteDoctor(id);
+        return ResponseEntity.noContent().build();
+    }
 }

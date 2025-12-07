@@ -208,4 +208,14 @@ public class DoctorService {
         Doctor updatedDoctor = doctorRepository.save(doctor);
         return DoctorDTO.fromEntity(updatedDoctor);
     }
+
+    @Transactional
+    public void deleteDoctor(Long id) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+        doctor.setAuthStatus("DELETED");
+
+        scheduleRepository.deleteByDoctor_UserIdAndWorkDateAfter(id, LocalDate.now());
+        doctorRepository.save(doctor);
+    }
 }
