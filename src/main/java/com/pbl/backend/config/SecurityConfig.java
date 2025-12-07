@@ -22,7 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Thay thế cho EnableGlobalMethodSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
