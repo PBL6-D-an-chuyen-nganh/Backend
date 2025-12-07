@@ -25,8 +25,6 @@ public class CustomUserDetailService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + username);
         }
 
-        // --- SỬA Ở ĐÂY ---
-        // Lấy đúng chuỗi "ROLE_USER" từ DB, KHÔNG thêm "ROLE_" đằng trước nữa
         List<GrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority(user.getRole().toString()));
 

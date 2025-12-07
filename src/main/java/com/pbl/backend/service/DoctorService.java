@@ -1,18 +1,24 @@
 package com.pbl.backend.service;
 
+import com.pbl.backend.dto.request.DoctorCreateRequestDTO;
+import com.pbl.backend.dto.request.DoctorEditRequestDTO;
 import com.pbl.backend.dto.response.DoctorDTO;
+import com.pbl.backend.dto.response.DoctorEditResponseDTO;
 import com.pbl.backend.dto.response.DoctorSummaryDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
 import com.pbl.backend.model.Schedule;
+import com.pbl.backend.model.User;
 import com.pbl.backend.repository.AppointmentRepository;
 import com.pbl.backend.repository.DoctorRepository;
 import com.pbl.backend.repository.ScheduleRepository;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -29,10 +35,16 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final ScheduleRepository scheduleRepository;
     private final AppointmentRepository appointmentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Page<DoctorDTO> getDoctors(Pageable pageable) {
         Page<Doctor> doctors = doctorRepository.findAll(pageable);
         return doctors.map(DoctorDTO::fromEntity);
+    }
+
+    public Page<DoctorSummaryDTO> getDoctorSummaries(Pageable pageable) {
+        Page<Doctor> doctors = doctorRepository.findAll(pageable);
+        return doctors.map(DoctorSummaryDTO::fromEntity);
     }
 
     public DoctorDTO getDoctorById(Long id) {
@@ -143,5 +155,57 @@ public class DoctorService {
 
     private LocalDateTime getShiftEndTime(LocalDate date, Schedule.WorkShift shift) {
         return shift == Schedule.WorkShift.AM ? date.atTime(11, 0) : date.atTime(17, 0);
+    }
+
+    @Transactional
+    public DoctorDTO createDoctor(DoctorCreateRequestDTO request) {
+
+        if (doctorRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email " + request.getEmail() + " đã được sử dụng bởi bác sĩ khác.");
+        }
+
+        Doctor doctor = new Doctor();
+        doctor.setName(request.getName());
+        doctor.setEmail(request.getEmail());
+        doctor.setPosition(request.getPosition());
+        doctor.setSpecialty(request.getSpecialty());
+        doctor.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        doctor.setRole(User.Role.ROLE_DOCTOR);
+        doctor.setAuthStatus("ACTIVE");
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        return DoctorDTO.fromEntity(savedDoctor);
+    }
+
+    public DoctorEditResponseDTO getDoctorForEdit(Long id) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        DoctorEditResponseDTO response = new DoctorEditResponseDTO();
+        response.setUserId(doctor.getUserId());
+        response.setName(doctor.getName());
+        response.setEmail(doctor.getEmail());
+        response.setPhoneNumber(doctor.getPhoneNumber());
+        response.setPosition(doctor.getPosition());
+        response.setDegree(doctor.getDegree());
+        response.setSpecialty(doctor.getSpecialty());
+
+        return response;
+    }
+
+    @Transactional
+    public DoctorDTO updateDoctor(Long id, DoctorEditRequestDTO request) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        doctor.setName(request.getName());
+        doctor.setEmail(request.getEmail());
+        doctor.setPhoneNumber(request.getPhoneNumber());
+        doctor.setPosition(request.getPosition());
+        doctor.setDegree(request.getDegree());
+        doctor.setSpecialty(request.getSpecialty());
+
+        Doctor updatedDoctor = doctorRepository.save(doctor);
+        return DoctorDTO.fromEntity(updatedDoctor);
     }
 }
