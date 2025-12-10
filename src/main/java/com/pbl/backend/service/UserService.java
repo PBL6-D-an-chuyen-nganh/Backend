@@ -4,6 +4,10 @@ import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -72,5 +76,13 @@ public class UserService {
     public void updatePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
+    }
+
+    public Page<UserDTO> getUsersWithRoleUser(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("userId").descending());
+
+        Page<User> userPage = userRepo.findByRole(User.Role.ROLE_USER, pageable);
+
+        return userPage.map(UserDTO::fromEntity);
     }
 }
