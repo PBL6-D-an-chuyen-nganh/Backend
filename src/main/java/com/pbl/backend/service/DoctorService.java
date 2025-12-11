@@ -169,7 +169,7 @@ public class DoctorService {
         doctor.setEmail(request.getEmail());
         doctor.setPosition(request.getPosition());
         doctor.setSpecialty(request.getSpecialty());
-        doctor.setPassword(passwordEncoder.encode(request.getPassword()));
+        doctor.setPassword(passwordEncoder.encode("12345678"));
 
         doctor.setRole(User.Role.ROLE_DOCTOR);
         doctor.setAuthStatus("ACTIVE");
