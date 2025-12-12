@@ -1,5 +1,7 @@
 package com.pbl.backend.service;
 
+import com.pbl.backend.dto.request.ChangePasswordRequest;
+import com.pbl.backend.dto.request.UserProfileUpdateRequest;
 import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.UserRepository;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -84,5 +87,47 @@ public class UserService {
         Page<User> userPage = userRepo.findByRole(User.Role.ROLE_USER, pageable);
 
         return userPage.map(UserDTO::fromEntity);
+    }
+
+    public User getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User) {
+            return (User) principal;
+        }
+        throw new RuntimeException("User not found");
+    }
+
+
+    public UserDTO getCurrentUserProfile() {
+        User user = getCurrentUser();
+        return UserDTO.fromEntity(user);
+    }
+
+    public UserDTO updateCurrentUserProfile(UserProfileUpdateRequest request) {
+        User user = getCurrentUser();
+
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            user.setName(request.getName());
+        }
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+        return UserDTO.fromEntity(userRepo.save(user));
+    }
+
+    public void changePassword(ChangePasswordRequest request) {
+        User user = getCurrentUser();
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepo.save(user);
+    }
+
+    public void deleteMyAccount() {
+        User user = getCurrentUser();
+        userRepo.delete(user);
     }
 }
