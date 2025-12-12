@@ -90,11 +90,20 @@ public class UserService {
     }
 
     public User getCurrentUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User) {
-            return (User) principal;
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        System.out.println("DEBUG: Đang tìm user với email: [" + email + "]");
+
+        User user = userRepo.findByEmail(email);
+
+        if (user == null) {
+            System.out.println("ERROR: Không tìm thấy user trong DB!");
+            throw new RuntimeException("User not found with email: " + email);
         }
-        throw new RuntimeException("User not found");
+
+        System.out.println("DEBUG: Tìm thấy user ID: " + user.getUserId());
+        return user;
     }
 
 
