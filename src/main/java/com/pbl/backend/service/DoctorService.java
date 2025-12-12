@@ -58,7 +58,7 @@ public class DoctorService {
     public List<DoctorSummaryDTO> getDoctorsBySpecialty(Integer specialtyId) {
         String specialtyName = getSpecialtyNameById(specialtyId);
 
-        List<Doctor> doctors = doctorRepository.findBySpecialty(specialtyName);
+        List<Doctor> doctors = doctorRepository.findActiveBySpecialty(specialtyName);
 
         return doctors.stream()
                 .map(DoctorSummaryDTO::fromEntity)
