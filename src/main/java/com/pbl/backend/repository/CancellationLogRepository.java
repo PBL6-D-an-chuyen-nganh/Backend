@@ -2,6 +2,7 @@ package com.pbl.backend.repository;
 
 import com.pbl.backend.dto.response.UserCancellationStatsDTO;
 import com.pbl.backend.model.AppointmentCancellationLog;
+import com.pbl.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ import java.util.List;
 @Repository
 public interface CancellationLogRepository extends JpaRepository<AppointmentCancellationLog, Long> {
 
-    long countByCancelledBy_UserId(Long userId);
+    void deleteByCancelledBy(User user);
 
     @Query("SELECT COUNT(c) FROM AppointmentCancellationLog c " +
             "WHERE c.cancelledBy.userId = :userId " +
