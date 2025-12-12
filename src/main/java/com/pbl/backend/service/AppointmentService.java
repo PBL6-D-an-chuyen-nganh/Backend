@@ -2,13 +2,8 @@ package com.pbl.backend.service;
 
 import com.pbl.backend.dto.request.AppointmentRequestDTO;
 import com.pbl.backend.dto.response.*;
-import com.pbl.backend.model.Appointment;
-import com.pbl.backend.model.Doctor;
-import com.pbl.backend.model.Patient;
-import com.pbl.backend.repository.AppointmentRepository;
-import com.pbl.backend.repository.DoctorRepository;
-import com.pbl.backend.repository.PatientRepository;
-import com.pbl.backend.repository.UserRepository;
+import com.pbl.backend.model.*;
+import com.pbl.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +31,8 @@ public class AppointmentService {
     private final DoctorService doctorService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final CancellationLogRepository cancellationLogRepo;
+    private final UserService userService;
 
     @Transactional
     public Appointment createAppointment(AppointmentRequestDTO request) {
@@ -213,8 +210,20 @@ public class AppointmentService {
 
     @Transactional
     public void deleteAppointment(Long appointmentId) {
+        User currentUser = userService.getCurrentUser();
+
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+
+        AppointmentCancellationLog log = AppointmentCancellationLog.builder()
+                .appointmentIdRef(appointment.getAppointmentID())
+                .appointmentTime(appointment.getTime())
+                .doctorName(appointment.getDoctor() != null ? appointment.getDoctor().getName() : "Unknown")
+                .cancelledBy(currentUser)
+                .build();
+
+        cancellationLogRepo.save(log);
+
         try {
             emailService.sendAppointmentCancellationEmail(appointment);
         } catch (Exception e) {
@@ -222,6 +231,7 @@ public class AppointmentService {
         }
         appointmentRepository.delete(appointment);
     }
+
     @Transactional
     public void deleteAppointmentByDoctor(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
