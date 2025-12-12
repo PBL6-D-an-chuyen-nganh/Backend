@@ -221,12 +221,19 @@ public class DoctorService {
         doctorRepository.save(doctor);
     }
 
-    private Doctor getCurrentDoctor() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User) {
-            return (Doctor) principal;
-        }
-        throw new RuntimeException("User not found");
+    public Doctor getCurrentDoctor() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        System.out.println("DEBUG: Đang tìm doctor với email: [" + email + "]");
+
+        Doctor doctor = doctorRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    System.out.println("ERROR: Không tìm thấy Doctor trong DB!");
+                    return new RuntimeException("Doctor not found with email: " + email);
+                });
+        System.out.println("DEBUG: Tìm thấy doctor ID: " + doctor.getUserId());
+        return doctor;
     }
 
     public DoctorDTO getCurrentDoctorProfile() {
@@ -238,6 +245,7 @@ public class DoctorService {
     public DoctorDTO updateCurrentDoctorProfile(DoctorProfileUpdateRequest request) {
         Doctor doctor = getCurrentDoctor();
 
+        if(request.getName() != null) doctor.setName(request.getName());
         if (request.getPhoneNumber() != null) doctor.setPhoneNumber(request.getPhoneNumber());
         if (request.getYoe() != null) doctor.setYoe(request.getYoe());
         if (request.getIntroduction() != null) doctor.setIntroduction(request.getIntroduction());

@@ -62,9 +62,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("DEBUG: User " + username + " authenticated successfully with authorities: " + userDetails.getAuthorities());
+            }
+            else {
+                    logger.error("DEBUG: Token validation failed for user: " + username);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }
