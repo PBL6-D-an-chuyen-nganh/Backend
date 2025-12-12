@@ -4,8 +4,10 @@ import com.pbl.backend.dto.request.ChangePasswordRequest;
 import com.pbl.backend.dto.request.UserProfileUpdateRequest;
 import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
+import com.pbl.backend.repository.CancellationLogRepository;
 import com.pbl.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +21,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final CancellationLogRepository cancellationLogRepo;
+
+    private final PasswordEncoder passwordEncoder;
 
     public UserDTO registerNewUser(UserDTO userDTO, String rawPassword) {
         User user = userDTO.toEntity();
@@ -68,11 +71,14 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found with userId: " + userId
                 ));
+
+        cancellationLogRepo.deleteByCancelledBy(user);
         userRepo.delete(user);
     }
 
