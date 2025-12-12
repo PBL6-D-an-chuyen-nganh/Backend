@@ -2,6 +2,7 @@ package com.pbl.backend.service;
 
 import com.pbl.backend.dto.request.DoctorCreateRequestDTO;
 import com.pbl.backend.dto.request.DoctorEditRequestDTO;
+import com.pbl.backend.dto.request.DoctorProfileUpdateRequest;
 import com.pbl.backend.dto.response.DoctorDTO;
 import com.pbl.backend.dto.response.DoctorEditResponseDTO;
 import com.pbl.backend.dto.response.DoctorSummaryDTO;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -217,5 +219,32 @@ public class DoctorService {
 
         scheduleRepository.deleteByDoctor_UserIdAndWorkDateAfter(id, LocalDate.now());
         doctorRepository.save(doctor);
+    }
+
+    private Doctor getCurrentDoctor() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User) {
+            return (Doctor) principal;
+        }
+        throw new RuntimeException("User not found");
+    }
+
+    public DoctorDTO getCurrentDoctorProfile() {
+        Doctor doctor = getCurrentDoctor();
+        return DoctorDTO.fromEntity(doctor);
+    }
+
+    @Transactional
+    public DoctorDTO updateCurrentDoctorProfile(DoctorProfileUpdateRequest request) {
+        Doctor doctor = getCurrentDoctor();
+
+        if (request.getPhoneNumber() != null) doctor.setPhoneNumber(request.getPhoneNumber());
+        if (request.getYoe() != null) doctor.setYoe(request.getYoe());
+        if (request.getIntroduction() != null) doctor.setIntroduction(request.getIntroduction());
+        if (request.getDegree() != null) doctor.setDegree(request.getDegree());
+        if (request.getAvatarFilepath() != null) doctor.setAvatarFilepath(request.getAvatarFilepath());
+        if (request.getAchievements() != null) doctor.setAchievements(request.getAchievements());
+
+        return DoctorDTO.fromEntity(doctorRepository.save(doctor));
     }
 }
