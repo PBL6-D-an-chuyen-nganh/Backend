@@ -26,5 +26,4 @@ public class UserAdminController {
         Page<UserDTO> userPage = userService.getUsersWithRoleUser(page, size);
         return ResponseEntity.ok(userPage);
     }
-
 }
