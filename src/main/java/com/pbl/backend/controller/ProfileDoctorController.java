@@ -2,6 +2,7 @@ package com.pbl.backend.controller;
 
 import com.pbl.backend.dto.request.DoctorProfileUpdateRequest;
 import com.pbl.backend.dto.response.DoctorDTO;
+import com.pbl.backend.dto.response.DoctorProfileUpdateResponseDTO;
 import com.pbl.backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public class ProfileDoctorController {
 
 
     @GetMapping()
-    public ResponseEntity<DoctorDTO> getMyDoctorProfile() {
+    public ResponseEntity<DoctorProfileUpdateResponseDTO> getMyDoctorProfile() {
         return ResponseEntity.ok(doctorService.getCurrentDoctorProfile());
     }
 
