@@ -5,6 +5,7 @@ import com.pbl.backend.dto.request.DoctorEditRequestDTO;
 import com.pbl.backend.dto.request.DoctorProfileUpdateRequest;
 import com.pbl.backend.dto.response.DoctorDTO;
 import com.pbl.backend.dto.response.DoctorEditResponseDTO;
+import com.pbl.backend.dto.response.DoctorProfileUpdateResponseDTO;
 import com.pbl.backend.dto.response.DoctorSummaryDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.model.Doctor;
@@ -236,9 +237,9 @@ public class DoctorService {
         return doctor;
     }
 
-    public DoctorDTO getCurrentDoctorProfile() {
+    public DoctorProfileUpdateResponseDTO getCurrentDoctorProfile() {
         Doctor doctor = getCurrentDoctor();
-        return DoctorDTO.fromEntity(doctor);
+        return DoctorProfileUpdateResponseDTO.fromEntity(doctor);
     }
 
     @Transactional
@@ -250,7 +251,6 @@ public class DoctorService {
         if (request.getYoe() != null) doctor.setYoe(request.getYoe());
         if (request.getIntroduction() != null) doctor.setIntroduction(request.getIntroduction());
         if (request.getDegree() != null) doctor.setDegree(request.getDegree());
-        if (request.getAvatarFilepath() != null) doctor.setAvatarFilepath(request.getAvatarFilepath());
         if (request.getAchievements() != null) doctor.setAchievements(request.getAchievements());
 
         return DoctorDTO.fromEntity(doctorRepository.save(doctor));

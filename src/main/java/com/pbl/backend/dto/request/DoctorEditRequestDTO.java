@@ -12,4 +12,3 @@ public class DoctorEditRequestDTO {
     private String degree;
     private String specialty;
 }
-
