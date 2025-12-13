@@ -42,8 +42,7 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable Long userId)
     {
         this.userService.deleteUser(userId);
-        return new ResponseEntity<ApiResponse>(new ApiResponse("User deleted Successfully", true), HttpStatus.OK);
-
+        return new ResponseEntity<>(new ApiResponse("User deleted Successfully", true), HttpStatus.OK);
     }
 
 }
