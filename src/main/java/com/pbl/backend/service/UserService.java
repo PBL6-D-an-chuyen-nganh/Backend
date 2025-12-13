@@ -141,8 +141,10 @@ public class UserService {
         userRepo.save(user);
     }
 
+    @Transactional
     public void deleteMyAccount() {
         User user = getCurrentUser();
+        cancellationLogRepo.deleteByCancelledBy(user);
         userRepo.delete(user);
     }
 }
