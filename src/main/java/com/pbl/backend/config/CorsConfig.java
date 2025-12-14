@@ -18,8 +18,8 @@ public class CorsConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "https://ten-du-an-frontend.vercel.app",
-                "https://ten-du-an-frontend.netlify.app"
+                "https://skin-health-gilt.vercel.app",
+                "https://skin-health-gilt.netlify.app"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
