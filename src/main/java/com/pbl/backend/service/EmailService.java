@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -15,6 +16,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Async
     public void sendOtpEmail(String to, String otp) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -41,7 +43,7 @@ public class EmailService {
             throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
         }
     }
-
+    @Async
     public void sendAppointmentConfirmationEmail(Appointment appointment) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -95,6 +97,7 @@ public class EmailService {
             throw new RuntimeException("Không thể gửi email xác nhận: " + e.getMessage(), e);
         }
     }
+    @Async
     public void sendAppointmentCancellationEmail(Appointment appointment) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -142,6 +145,7 @@ public class EmailService {
             throw new RuntimeException("Không thể gửi email huỷ lịch: " + e.getMessage(), e);
         }
     }
+    @Async
     public void sendAppointmentDoctorCancellationEmail(Appointment appointment) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
