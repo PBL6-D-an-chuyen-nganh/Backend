@@ -112,6 +112,9 @@ public class UserService {
         return user;
     }
 
+    public Long getCurrentUserId() {
+        return getCurrentUser().getUserId();
+    }
 
     public UserDTO getCurrentUserProfile() {
         User user = getCurrentUser();

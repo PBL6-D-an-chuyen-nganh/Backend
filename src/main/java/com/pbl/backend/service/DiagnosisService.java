@@ -7,7 +7,7 @@ import com.pbl.backend.dto.response.PatientListDTO;
 import com.pbl.backend.model.*;
 import com.pbl.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,17 +16,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DiagnosisService {
 
-    @Autowired
-    private DiagnosisRepository diagnosisRepository;
-    @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
-    @Autowired
-    private DoctorRepository doctorRepository;
-    @Autowired
-    private PatientRepository patientRepository;
-    @Autowired AppointmentRepository appointmentRepository;
+    private final DiagnosisRepository diagnosisRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
 
     @Transactional
     public DiagnosisResponseDTO createDiagnosis(DiagnosisRequestDTO requestDTO) {
@@ -111,6 +108,19 @@ public class DiagnosisService {
 
         return diagnoses.stream()
                 .map(DiagnosisListDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<DiagnosisResponseDTO> getAllDiagnosesManagedByUser(Long userId) {
+        List<Diagnosis> diagnoses = diagnosisRepository.findAllDiagnosesByManagerUserId(userId);
+
+        return diagnoses.stream()
+                .map(diagnosis -> {
+                    DiagnosisResponseDTO dto = new DiagnosisResponseDTO(diagnosis);
+                    dto.setPatientName(diagnosis.getMedicalRecord().getPatient().getName());
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 }

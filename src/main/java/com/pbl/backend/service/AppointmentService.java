@@ -12,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -43,27 +42,26 @@ public class AppointmentService {
         if (doctorId == null || requestedTime == null) {
             throw new RuntimeException("Thiếu thông tin bác sĩ hoặc thời gian hẹn.");
         }
-
         if (requestedTime.isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Thời gian hẹn phải ở trong tương lai.");
         }
-
-        if (creatorId != null) {
-            if (!userRepository.existsById(creatorId)) {
-                 throw new RuntimeException("Không tìm thấy người tạo lịch hẹn (CreatorId).");
-             }
-
-        } else {
+        if (creatorId == null) {
             throw new RuntimeException("Thiếu thông tin người tạo lịch hẹn (CreatorId).");
         }
 
+        User creator = userRepository.findById(creatorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người tạo lịch hẹn (User ID: " + creatorId + ")."));
+
+
         Doctor selectedDoctor = doctorRepository.findByUserId(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ không tồn tại."));
+
 
         Map<LocalDate, List<LocalTime>> availableSlots = doctorService.getAvailableSlotsForDoctor(doctorId);
         LocalDate requestedDate = requestedTime.toLocalDate();
         LocalTime requestedTimePart = requestedTime.toLocalTime();
         List<LocalTime> validTimesForDay = availableSlots.get(requestedDate);
+
         if (validTimesForDay == null || !validTimesForDay.contains(requestedTimePart)) {
             throw new RuntimeException("Khung giờ bạn chọn không hợp lệ hoặc đã có người khác đặt.");
         }
@@ -79,6 +77,9 @@ public class AppointmentService {
         newPatient.setPhoneNumber(request.getPatientInfo().getPhoneNumber());
         newPatient.setGender(request.getPatientInfo().getGender());
         newPatient.setDateOfBirth(request.getPatientInfo().getDateOfBirth());
+
+        newPatient.setUser(creator);
+
         Patient savedPatient = patientRepository.save(newPatient);
 
         Appointment newAppointment = new Appointment();
@@ -86,13 +87,7 @@ public class AppointmentService {
         newAppointment.setDoctor(selectedDoctor);
         newAppointment.setTime(requestedTime);
         newAppointment.setNote(request.getNote());
-
-        LocalDateTime now = LocalDateTime.now();
-
-        long hoursUntilAppointment = Duration.between(now, requestedTime).toHours();
-
         newAppointment.setStatus("active");
-
         newAppointment.setCreatedAt(LocalDateTime.now());
         newAppointment.setCreatorId(creatorId);
 
