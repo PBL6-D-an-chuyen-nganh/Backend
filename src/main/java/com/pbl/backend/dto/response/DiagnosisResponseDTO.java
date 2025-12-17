@@ -1,6 +1,7 @@
 package com.pbl.backend.dto.response;
 
 import com.pbl.backend.model.Diagnosis;
+import com.pbl.backend.model.Patient;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -22,6 +23,10 @@ public class DiagnosisResponseDTO {
 
     public DiagnosisResponseDTO(Diagnosis diagnosis) {
         this.diagnosisID = diagnosis.getDiagnosisID();
+        this.disease = diagnosis.getDisease();
+        this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
+        this.doctorNotes = diagnosis.getDoctorNotes();
+        this.treatmentPlan = diagnosis.getTreatmentPlan();
 
         if (diagnosis.getDoctor() != null) {
             this.doctorName = diagnosis.getDoctor().getName();
@@ -29,18 +34,24 @@ public class DiagnosisResponseDTO {
             this.degree = diagnosis.getDoctor().getDegree();
         }
 
-        if (diagnosis.getMedicalRecord().getPatient() != null) {
-            this.patientId = diagnosis.getMedicalRecord().getPatient().getPatientId();
-            this.patientName = diagnosis.getMedicalRecord().getPatient().getName();
-            this.gender = diagnosis.getMedicalRecord().getPatient().getGender();
-        }
-
-        this.disease = diagnosis.getDisease();
-        this.dateOfDiagnosis = diagnosis.getDateOfDiagnosis();
-        this.doctorNotes = diagnosis.getDoctorNotes();
-        this.treatmentPlan = diagnosis.getTreatmentPlan();
         if (diagnosis.getAppointment() != null) {
             this.appointmentId = diagnosis.getAppointment().getAppointmentID();
+        }
+
+        Patient foundPatient = null;
+
+        if (diagnosis.getMedicalRecord() != null) {
+            foundPatient = diagnosis.getMedicalRecord().getPatient();
+        }
+
+        if (foundPatient == null && diagnosis.getAppointment() != null) {
+            foundPatient = diagnosis.getAppointment().getPatient();
+        }
+
+        if (foundPatient != null) {
+            this.patientId = foundPatient.getPatientId();
+            this.patientName = foundPatient.getName();
+            this.gender = foundPatient.getGender();
         }
     }
 }

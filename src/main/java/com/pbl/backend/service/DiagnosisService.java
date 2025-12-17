@@ -116,11 +116,7 @@ public class DiagnosisService {
         List<Diagnosis> diagnoses = diagnosisRepository.findAllDiagnosesByManagerUserId(userId);
 
         return diagnoses.stream()
-                .map(diagnosis -> {
-                    DiagnosisResponseDTO dto = new DiagnosisResponseDTO(diagnosis);
-                    dto.setPatientName(diagnosis.getMedicalRecord().getPatient().getName());
-                    return dto;
-                })
+                .map(DiagnosisResponseDTO::new)
                 .collect(Collectors.toList());
     }
 }

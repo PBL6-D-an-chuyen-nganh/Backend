@@ -3,6 +3,8 @@ package com.pbl.backend.service;
 import com.pbl.backend.model.Appointment;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,11 +15,16 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class EmailService {
+
+    // 1. Khai báo Logger
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
     @Autowired
     private JavaMailSender mailSender;
 
     @Async
     public void sendOtpEmail(String to, String otp) {
+        logger.info("Đang bắt đầu gửi OTP tới: {}", to);
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -36,15 +43,23 @@ public class EmailService {
                     + "<p style='font-size: 12px; color: #aaa;'>Đây là email tự động, vui lòng không trả lời.</p>"
                     + "</div></div>";
 
-            helper.setText(htmlContent, true); // true = HTML
+            helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
+
+            // Log thành công
+            logger.info("Gửi OTP thành công tới: {}", to);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+            // Log lỗi chi tiết thay vì throw
+            logger.error("LỖI GỬI OTP tới {}: {}", to, e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("LỖI KHÔNG XÁC ĐỊNH khi gửi OTP tới {}: {}", to, e.getMessage(), e);
         }
     }
+
     @Async
     public void sendAppointmentConfirmationEmail(Appointment appointment) {
+        logger.info("Đang gửi mail xác nhận lịch hẹn ID: {}", appointment.getAppointmentID());
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -93,12 +108,19 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
             mailSender.send(mimeMessage);
+
+            logger.info("Gửi mail xác nhận thành công cho: {}", patientEmail);
+
         } catch (MessagingException e) {
-            throw new RuntimeException("Không thể gửi email xác nhận: " + e.getMessage(), e);
+            logger.error("LỖI GỬI MAIL XÁC NHẬN (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("LỖI KHÔNG XÁC ĐỊNH MAIL XÁC NHẬN (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
         }
     }
+
     @Async
     public void sendAppointmentCancellationEmail(Appointment appointment) {
+        logger.info("Đang gửi mail huỷ lịch hẹn ID: {}", appointment.getAppointmentID());
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -141,12 +163,19 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
             mailSender.send(mimeMessage);
+
+            logger.info("Gửi mail huỷ lịch thành công cho: {}", patientEmail);
+
         } catch (MessagingException e) {
-            throw new RuntimeException("Không thể gửi email huỷ lịch: " + e.getMessage(), e);
+            logger.error("LỖI GỬI MAIL HUỶ LỊCH (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("LỖI KHÔNG XÁC ĐỊNH MAIL HUỶ LỊCH (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
         }
     }
+
     @Async
     public void sendAppointmentDoctorCancellationEmail(Appointment appointment) {
+        logger.info("Đang gửi mail bác sĩ huỷ lịch ID: {}", appointment.getAppointmentID());
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -154,7 +183,6 @@ public class EmailService {
             String patientEmail = appointment.getPatient().getEmail();
             String patientName = appointment.getPatient().getName();
             String doctorName = appointment.getDoctor().getName();
-            String note = appointment.getNote() != null ? appointment.getNote() : "Không có ghi chú.";
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
             String appointmentTime = appointment.getTime().format(formatter);
@@ -194,9 +222,13 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
             mailSender.send(mimeMessage);
+
+            logger.info("Gửi mail bác sĩ huỷ lịch thành công cho: {}", patientEmail);
+
         } catch (MessagingException e) {
-            throw new RuntimeException("Không thể gửi email huỷ lịch do bác sĩ: " + e.getMessage(), e);
+            logger.error("LỖI GỬI MAIL BS HUỶ LỊCH (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("LỖI KHÔNG XÁC ĐỊNH MAIL BS HUỶ LỊCH (ID: {}): {}", appointment.getAppointmentID(), e.getMessage(), e);
         }
     }
-
 }

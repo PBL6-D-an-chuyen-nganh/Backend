@@ -42,6 +42,20 @@ public class AppointmentUserController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/creator/AI/{creatorId}")
+    public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByCreatorIdForAI(
+            @PathVariable Long creatorId,
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "size", defaultValue = "30", required = false) int size,
+
+            @RequestParam(value = "sortBy", defaultValue = "time", required = false) String sortBy,
+
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir
+    ) {
+        AppointmentListResponseDTO response = appointmentService.getAppointmentsByCreatorId(creatorId, page, size, sortBy, sortDir);
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{appointmentId}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long appointmentId) {
         try {
@@ -57,5 +71,6 @@ public class AppointmentUserController {
         AppointmentInfoForDiagDTO appointment = appointmentService.getAppointmentById(appointmentId);
         return ResponseEntity.ok(appointment);
     }
+
 
 }
