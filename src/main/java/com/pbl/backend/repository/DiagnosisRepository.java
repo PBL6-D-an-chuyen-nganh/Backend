@@ -21,8 +21,8 @@ public interface DiagnosisRepository extends JpaRepository<Diagnosis, Long> {
     List<Diagnosis> findByDoctorUserIdAndDateOfDiagnosis(Long doctorUserId, LocalDate dateOfDiagnosis);
 
     @Query("SELECT d FROM Diagnosis d " +
-            "JOIN d.medicalRecord mr " +
-            "JOIN mr.patient p " +
+            "JOIN FETCH d.appointment a " +
+            "JOIN FETCH a.patient p " +
             "WHERE p.user.userId = :userId")
     List<Diagnosis> findAllDiagnosesByManagerUserId(@Param("userId") Long userId);
 }
