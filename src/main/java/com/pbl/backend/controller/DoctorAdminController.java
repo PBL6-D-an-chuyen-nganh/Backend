@@ -118,4 +118,10 @@ public class DoctorAdminController {
         doctorService.deleteDoctor(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/reopen-doctor")
+    public ResponseEntity<DoctorDTO> reopenDoctorAccount(@PathVariable Long id) {
+        DoctorDTO reopenedDoctor = doctorService.reopenDoctorAccount(id);
+        return ResponseEntity.ok(reopenedDoctor);
+    }
 }

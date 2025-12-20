@@ -264,4 +264,18 @@ public class DoctorService {
 
         return DoctorDTO.fromEntity(doctorRepository.save(doctor));
     }
+
+    @Transactional
+    public DoctorDTO reopenDoctorAccount(Long id) {
+        doctorRepository.forceReopenUser(id);
+
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ với id: " + id));
+
+        if (!doctor.getRole().equals(User.Role.ROLE_DOCTOR)) {
+            throw new RuntimeException("ID này không phải là tài khoản bác sĩ");
+        }
+
+        return DoctorDTO.fromEntity(doctor);
+    }
 }

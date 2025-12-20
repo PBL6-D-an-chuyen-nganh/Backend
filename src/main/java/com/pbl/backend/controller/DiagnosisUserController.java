@@ -21,8 +21,9 @@ public class DiagnosisUserController {
 
     private final UserService userService;
 
-    @GetMapping("/{patientId}")
-    public ResponseEntity<List<DiagnosisResponseDTO>> getDiagnosesByPatientId(@PathVariable Long patientId) {
+    @GetMapping()
+    public ResponseEntity<List<DiagnosisResponseDTO>> getDiagnosesByPatientId() {
+        Long patientId = userService.getCurrentUserId();
         List<DiagnosisResponseDTO> diagnoses = diagnosisService.getDiagnosesByPatientId(patientId);
         return ResponseEntity.ok(diagnoses);
     }

@@ -1,10 +1,11 @@
 package com.pbl.backend.controller;
 
+import com.pbl.backend.dto.request.AppointmentRequestDTO;
 import com.pbl.backend.dto.response.AppointmentInfoForDiagDTO;
 import com.pbl.backend.dto.response.AppointmentListResponseDTO;
-import com.pbl.backend.dto.request.AppointmentRequestDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
+import com.pbl.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class AppointmentUserController {
 
     private final AppointmentService appointmentService;
+    private final UserService userService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequestDTO request) {
@@ -28,9 +30,8 @@ public class AppointmentUserController {
         }
     }
 
-    @GetMapping("/creator/{creatorId}")
+    @GetMapping("/creator")
     public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByCreatorId(
-            @PathVariable Long creatorId,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page,
             @RequestParam(value = "size", defaultValue = "8", required = false) int size,
 
@@ -38,6 +39,7 @@ public class AppointmentUserController {
 
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir
     ) {
+        Long creatorId = userService.getCurrentUserId();
         AppointmentListResponseDTO response = appointmentService.getAppointmentsByCreatorId(creatorId, page, size, sortBy, sortDir);
         return ResponseEntity.ok(response);
     }
