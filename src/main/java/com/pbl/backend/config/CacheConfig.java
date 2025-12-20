@@ -29,21 +29,10 @@ public class CacheConfig {
                 .maximumSize(500)
                 .recordStats());
 
-        System.err.println("!!! [DEBUG] REGISTERING CACHE NAMES: " + Arrays.asList(
-                "appointments_by_creator",
-                "appointments_by_doctor",
-                "appointment_details",
-                "doctor_slots",
-                "articles",
-                "doctors",
-                "doctor_details",
-                "diagnoses",
-                "patient_lists"
-        ));
-
         cacheManager.setCacheNames(Arrays.asList(
                 "appointments_by_creator", "appointments_by_doctor", "appointment_details",
-                "doctor_slots", "articles", "doctors", "doctor_details", "diagnoses", "patient_lists"
+                "doctor_slots", "articles", "doctors", "doctor_details", "diagnoses", "patient_lists", "doctor_summaries",
+                "doctors_by_specialty"
         ));
         return cacheManager;
     }

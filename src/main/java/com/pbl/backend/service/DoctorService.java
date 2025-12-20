@@ -48,6 +48,7 @@ public class DoctorService {
         return doctors.map(DoctorDTO::fromEntity);
     }
 
+    @Cacheable(value = "doctor_summaries", key = "#pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<DoctorSummaryDTO> getDoctorSummaries(Pageable pageable) {
         Page<Doctor> doctors = doctorRepository.findAll(pageable);
         return doctors.map(DoctorSummaryDTO::fromEntity);
@@ -60,6 +61,7 @@ public class DoctorService {
                 .orElse(null);
     }
 
+    @Cacheable(value = "doctors_by_specialty", key = "#specialtyId")
     public List<DoctorSummaryDTO> getDoctorsBySpecialty(Integer specialtyId) {
         String specialtyName = getSpecialtyNameById(specialtyId);
 

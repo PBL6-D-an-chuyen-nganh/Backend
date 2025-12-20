@@ -28,7 +28,14 @@ public class DiagnosisService {
     private final AppointmentRepository appointmentRepository;
 
     @Transactional
-    @CacheEvict(value = {"diagnoses", "patient_lists", "doctor_slots"}, allEntries = true)
+    @CacheEvict(value = {
+            "diagnoses",
+            "patient_lists",
+            "doctor_slots",
+            "appointments_by_creator",
+            "appointments_by_doctor",
+            "appointment_details"
+    }, allEntries = true)
     public DiagnosisResponseDTO createDiagnosis(DiagnosisRequestDTO requestDTO) {
         Doctor doctor = doctorRepository.findById(requestDTO.getDoctorUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Doctor với User ID: " + requestDTO.getDoctorUserId()));
@@ -91,11 +98,10 @@ public class DiagnosisService {
                 .map(DiagnosisResponseDTO::new)
                 .collect(Collectors.toList());
     }
-
+    @Cacheable(value = "diagnoses", key = "'diagnosis_' + #diagnosisId")
     public DiagnosisResponseDTO getDiagnosisById(Long diagnosisId) {
         Diagnosis diagnosis = diagnosisRepository.findById(diagnosisId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Diagnosis với ID: " + diagnosisId));
-
         return new DiagnosisResponseDTO(diagnosis);
     }
 
@@ -108,6 +114,7 @@ public class DiagnosisService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "diagnoses", key = "'doctor_' + #doctorUserId + '_date_' + #date.toString()")
     public List<DiagnosisListDTO> getDiagnosesByDoctorIdAndDate(Long doctorUserId, LocalDate date) {
         List<Diagnosis> diagnoses = diagnosisRepository.findByDoctorUserIdAndDateOfDiagnosis(doctorUserId, date);
 
@@ -117,6 +124,7 @@ public class DiagnosisService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "diagnoses", key = "'manager_' + #userId")
     public List<DiagnosisResponseDTO> getAllDiagnosesManagedByUser(Long userId) {
         List<Diagnosis> diagnoses = diagnosisRepository.findAllDiagnosesByManagerUserId(userId);
 
