@@ -108,6 +108,9 @@ public class AppointmentService {
             key = "#creatorId + '_' + #page + '_' + #sortBy + '_' + #sortDir",
             unless = "#result == null")
     public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId, int page, int size, String sortBy, String sortDir) {
+        System.err.println("#######################################################");
+        System.err.println("!!! [DEBUG] CACHE MISS - RUNNING DB QUERY FOR CREATOR ID: " + creatorId);
+        System.err.println("#######################################################");
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
