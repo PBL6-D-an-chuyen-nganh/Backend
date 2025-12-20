@@ -5,6 +5,8 @@ import com.pbl.backend.dto.response.*;
 import com.pbl.backend.model.*;
 import com.pbl.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ public class AppointmentService {
     private final UserService userService;
 
     @Transactional
+    @CacheEvict(value = {"appointments_by_creator", "appointments_by_doctor", "doctor_slots"}, allEntries = true)
     public Appointment createAppointment(AppointmentRequestDTO request) {
         Long doctorId = request.getDoctorId();
         LocalDateTime requestedTime = request.getTime();
@@ -101,7 +104,13 @@ public class AppointmentService {
         return savedAppointment;
     }
 
+    @Cacheable(value = "appointments_by_creator",
+            key = "#creatorId + '_' + #page + '_' + #sortBy + '_' + #sortDir",
+            unless = "#result == null")
     public AppointmentListResponseDTO getAppointmentsByCreatorId(Long creatorId, int page, int size, String sortBy, String sortDir) {
+        System.err.println("#######################################################");
+        System.err.println("!!! [DEBUG] CACHE MISS - RUNNING DB QUERY FOR CREATOR ID: " + creatorId);
+        System.err.println("#######################################################");
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
@@ -121,6 +130,7 @@ public class AppointmentService {
         response.setTotalElements(appointmentsPage.getTotalElements());
         response.setTotalPages(appointmentsPage.getTotalPages());
         response.setLast(appointmentsPage.isLast());
+        System.out.println("-----> [DB HIT] Đang tính toán appointment cho user: " + creatorId);
 
         return response;
     }
@@ -162,6 +172,9 @@ public class AppointmentService {
         return appointmentDTO;
     }
 
+    @Cacheable(value = "appointments_by_doctor",
+            key = "#doctorId + '_' + #date.toString() + '_' + #page",
+            unless = "#result == null")
     public AppointmentListResponseDTO getAppointmentsByDoctorIdAndDate(
             Long doctorId,
             LocalDate date,
@@ -204,6 +217,7 @@ public class AppointmentService {
     }
 
     @Transactional
+    @CacheEvict(value = {"appointments_by_creator", "appointments_by_doctor", "appointment_details", "doctor_slots"}, allEntries = true)
     public void deleteAppointment(Long appointmentId) {
         User currentUser = userService.getCurrentUser();
 
@@ -228,6 +242,7 @@ public class AppointmentService {
     }
 
     @Transactional
+    @CacheEvict(value = {"appointments_by_creator", "appointments_by_doctor", "appointment_details", "doctor_slots"}, allEntries = true)
     public void deleteAppointmentByDoctor(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
@@ -239,6 +254,7 @@ public class AppointmentService {
         appointmentRepository.delete(appointment);
     }
 
+    @Cacheable(value = "appointment_details", key = "#appointmentId")
     public AppointmentInfoForDiagDTO getAppointmentById(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
@@ -264,4 +280,5 @@ public class AppointmentService {
 
         return dto;
     }
+
 }

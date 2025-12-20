@@ -5,6 +5,7 @@ import com.pbl.backend.dto.response.AppointmentInfoForDiagDTO;
 import com.pbl.backend.dto.response.AppointmentListResponseDTO;
 import com.pbl.backend.model.Appointment;
 import com.pbl.backend.service.AppointmentService;
+import com.pbl.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 public class AppointmentDoctorController {
 
     private final AppointmentService appointmentService;
+    private final UserService userService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequestDTO request) {
@@ -53,9 +55,8 @@ public class AppointmentDoctorController {
         }
     }
 
-    @GetMapping("/{doctorId}")
+    @GetMapping()
     public ResponseEntity<AppointmentListResponseDTO> getAppointmentsByDoctorIdAndDate(
-            @PathVariable Long doctorId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page,
             @RequestParam(value = "size", defaultValue = "8", required = false) int size,
@@ -64,6 +65,7 @@ public class AppointmentDoctorController {
 
             @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir
     ) {
+        Long doctorId = userService.getCurrentUserId();
         AppointmentListResponseDTO response = appointmentService.getAppointmentsByDoctorIdAndDate(
                 doctorId,
                 date,

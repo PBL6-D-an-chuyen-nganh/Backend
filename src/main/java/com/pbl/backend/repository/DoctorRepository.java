@@ -3,8 +3,10 @@ package com.pbl.backend.repository;
 import com.pbl.backend.model.Doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +18,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long>, JpaSpecif
     Optional<Doctor> findByUserId(Long userId);
     boolean existsByEmail(String email);
     Optional<Doctor> findByEmail(String email);
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE users SET auth_status = 'ACTIVE' WHERE user_id = :id", nativeQuery = true)
+    void forceReopenUser(@Param("id") Long id);
 }
