@@ -8,6 +8,8 @@ import com.pbl.backend.model.*;
 import com.pbl.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class DiagnosisService {
     private final AppointmentRepository appointmentRepository;
 
     @Transactional
+    @CacheEvict(value = {"diagnoses", "patient_lists", "doctor_slots"}, allEntries = true)
     public DiagnosisResponseDTO createDiagnosis(DiagnosisRequestDTO requestDTO) {
         Doctor doctor = doctorRepository.findById(requestDTO.getDoctorUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Doctor với User ID: " + requestDTO.getDoctorUserId()));
@@ -77,6 +80,7 @@ public class DiagnosisService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "diagnoses", key = "'patient_' + #patientId")
     public List<DiagnosisResponseDTO> getDiagnosesByPatientId(Long patientId) {
         MedicalRecord medicalRecord = medicalRecordRepository.findByPatient_PatientId(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy MedicalRecord cho Patient ID: " + patientId));
@@ -96,6 +100,7 @@ public class DiagnosisService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "patient_lists", key = "'doctor_' + #doctorUserId")
     public List<PatientListDTO> getPatientListByDoctorId(Long doctorUserId) {
         List<Diagnosis> diagnoses = diagnosisRepository.findAllByDoctorUserIdWithDetails(doctorUserId);
         return diagnoses.stream()

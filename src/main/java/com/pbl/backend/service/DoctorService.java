@@ -17,6 +17,8 @@ import com.pbl.backend.repository.ScheduleRepository;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,6 +42,7 @@ public class DoctorService {
     private final AppointmentRepository appointmentRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Cacheable(value = "doctors", key = "#pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<DoctorDTO> getDoctors(Pageable pageable) {
         Page<Doctor> doctors = doctorRepository.findAll(pageable);
         return doctors.map(DoctorDTO::fromEntity);
@@ -50,6 +53,7 @@ public class DoctorService {
         return doctors.map(DoctorSummaryDTO::fromEntity);
     }
 
+    @Cacheable(value = "doctor_details", key = "#id")
     public DoctorDTO getDoctorById(Long id) {
         return doctorRepository.findById(id)
                 .map(DoctorDTO::fromEntity)
@@ -95,6 +99,7 @@ public class DoctorService {
         return doctors.map(DoctorDTO::fromEntity);
     }
 
+    @Cacheable(value = "doctor_slots", key = "#doctorId")
     public Map<LocalDate, List<LocalTime>> getAvailableSlotsForDoctor(Long doctorId) {
         List<Schedule> schedules = scheduleRepository.findByDoctorUserIdAndWorkDateAfter(doctorId, LocalDate.now().minusDays(1));
         List<Appointment> appointments = appointmentRepository.findByDoctorUserIdAndTimeAfter(doctorId, LocalDateTime.now().minusHours(1));
@@ -161,6 +166,7 @@ public class DoctorService {
     }
 
     @Transactional
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots"}, allEntries = true)
     public DoctorDTO createDoctor(DoctorCreateRequestDTO request) {
 
         if (doctorRepository.existsByEmail(request.getEmail())) {
@@ -197,6 +203,7 @@ public class DoctorService {
     }
 
     @Transactional
+    @CacheEvict(value = "doctors", allEntries = true)
     public DoctorDTO updateDoctor(Long id, DoctorEditRequestDTO request) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
@@ -213,6 +220,7 @@ public class DoctorService {
     }
 
     @Transactional
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots"}, allEntries = true)
     public void deleteDoctor(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
@@ -243,6 +251,7 @@ public class DoctorService {
     }
 
     @Transactional
+    @CacheEvict(value = {"doctors", "doctor_details"}, allEntries = true)
     public DoctorDTO updateCurrentDoctorProfile(DoctorProfileUpdateRequest request) {
         Doctor doctor = getCurrentDoctor();
 
