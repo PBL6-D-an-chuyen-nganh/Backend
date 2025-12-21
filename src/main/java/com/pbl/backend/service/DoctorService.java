@@ -274,6 +274,7 @@ public class DoctorService {
     }
 
     @Transactional
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots"}, allEntries = true)
     public DoctorDTO reopenDoctorAccount(Long id) {
         doctorRepository.forceReopenUser(id);
 
