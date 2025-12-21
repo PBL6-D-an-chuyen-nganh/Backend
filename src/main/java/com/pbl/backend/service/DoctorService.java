@@ -234,12 +234,11 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots",  "doctor_summaries", "doctors_by_specialty"}, allEntries = true)
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots", "doctor_summaries", "doctors_by_specialty"}, allEntries = true)
     public void deleteDoctor(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
 
-        System.out.println("Đang tiến hành huỷ lịch hẹn tương lai của bác sĩ ID: " + id);
         if (appointmentService != null) {
             appointmentService.cancelAllFutureAppointmentsForDoctor(id);
         }
@@ -247,7 +246,10 @@ public class DoctorService {
         doctor.setAuthStatus("DELETED");
 
         scheduleRepository.deleteByDoctor_UserIdAndWorkDateAfter(id, LocalDate.now());
+
         doctorRepository.save(doctor);
+
+        doctorRepository.flush();
     }
 
     public Doctor getCurrentDoctor() {
@@ -289,8 +291,6 @@ public class DoctorService {
     @Transactional
     @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots", "doctor_summaries", "doctors_by_specialty"}, allEntries = true)
     public DoctorDTO reopenDoctorAccount(Long id) {
-        doctorRepository.forceReopenUser(id);
-
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ với id: " + id));
 
@@ -298,6 +298,10 @@ public class DoctorService {
             throw new RuntimeException("ID này không phải là tài khoản bác sĩ");
         }
 
-        return DoctorDTO.fromEntity(doctor);
+        doctor.setAuthStatus("ACTIVE");
+
+        Doctor savedDoctor = doctorRepository.save(doctor);
+
+        return DoctorDTO.fromEntity(savedDoctor);
     }
 }
