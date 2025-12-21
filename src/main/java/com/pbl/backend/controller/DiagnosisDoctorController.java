@@ -46,11 +46,14 @@ public class DiagnosisDoctorController {
     public ResponseEntity<List<DiagnosisListDTO>> getDiagnosesByDoctorAndDate(
             @RequestParam(required = false) LocalDate date) {
 
+        System.out.println("Received date: " + date);
+
         if (date == null) {
             date = LocalDate.now();
         }
         Long doctorUserId = userService.getCurrentUserId();
         List<DiagnosisListDTO> diagnosesList = diagnosisService.getDiagnosesByDoctorIdAndDate(doctorUserId, date);
+        System.out.println(diagnosesList.get(0).getDateOfDiagnosis());
         return ResponseEntity.ok(diagnosesList);
     }
 
