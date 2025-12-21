@@ -79,6 +79,7 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
+
     public Page<DoctorDTO> searchDoctors(String name, String degree, String position, Pageable pageable) {
         Specification<Doctor> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -286,7 +287,7 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots"}, allEntries = true)
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots", "doctor_summaries"}, allEntries = true)
     public DoctorDTO reopenDoctorAccount(Long id) {
         doctorRepository.forceReopenUser(id);
 

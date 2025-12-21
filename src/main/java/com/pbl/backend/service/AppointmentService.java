@@ -36,7 +36,7 @@ public class AppointmentService {
     private final UserService userService;
 
     @Transactional
-    @CacheEvict(value = {"appointments_by_creator", "appointments_by_doctor", "doctor_slots"}, allEntries = true)
+    @CacheEvict(value = {"appointments_by_creator", "appointments_by_doctor", "doctor_slots", "doctors_by_specialty"}, allEntries = true)
     public Appointment createAppointment(AppointmentRequestDTO request) {
         Long doctorId = request.getDoctorId();
         LocalDateTime requestedTime = request.getTime();
