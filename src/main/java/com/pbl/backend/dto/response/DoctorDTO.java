@@ -27,6 +27,7 @@ public class DoctorDTO extends UserDTO {
         dto.setIntroduction(doctor.getIntroduction());
         dto.setAvatarFilepath(doctor.getAvatarFilepath());
         dto.setPosition(doctor.getPosition());
+        dto.setAuthStatus(doctor.getAuthStatus());
         dto.setDegree(doctor.getDegree());
         dto.setAchievements(doctor.getAchievements());
         return dto;
@@ -42,6 +43,7 @@ public class DoctorDTO extends UserDTO {
         doctor.setPosition(this.getPosition());
         doctor.setDegree(this.getDegree());
         doctor.setAchievements(this.getAchievements());
+        doctor.setAuthStatus(this.getAuthStatus());
         return doctor;
     }
 }
