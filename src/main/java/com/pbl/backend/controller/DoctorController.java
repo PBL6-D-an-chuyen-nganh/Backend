@@ -50,6 +50,32 @@ public class DoctorController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/all")
+    public ResponseEntity<PagedResponse<DoctorDTO>> getAllDoctors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "userId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<DoctorDTO> doctors = doctorService.getDoctors(pageable);
+
+        PagedResponse<DoctorDTO> response = new PagedResponse<>(
+                doctors.getContent(),
+                doctors.getNumber(),
+                doctors.getSize(),
+                doctors.getTotalElements(),
+                doctors.getTotalPages(),
+                doctors.isLast()
+        );
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable Long id) {
         DoctorDTO doctor = doctorService.getDoctorById(id);
