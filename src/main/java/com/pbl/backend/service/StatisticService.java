@@ -1,6 +1,7 @@
 package com.pbl.backend.service;
 
 import com.pbl.backend.dto.response.AppointmentStatsDTO;
+import com.pbl.backend.dto.response.DoctorAppointmentStatsDTO;
 import com.pbl.backend.dto.response.UserCancellationStatsDTO;
 import com.pbl.backend.repository.AppointmentRepository;
 import com.pbl.backend.repository.CancellationLogRepository;
@@ -59,5 +60,15 @@ public class StatisticService {
         }
 
         return finalStats;
+    }
+    public List<DoctorAppointmentStatsDTO> getDoctorAppointmentStats(int month, int year) {
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("Tháng không hợp lệ (1-12).");
+        }
+        if (year < 2000) {
+            throw new IllegalArgumentException("Năm không hợp lệ.");
+        }
+
+        return appointmentRepository.countAppointmentsByDoctorInMonth(month, year);
     }
 }

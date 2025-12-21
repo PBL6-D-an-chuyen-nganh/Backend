@@ -1,6 +1,7 @@
 package com.pbl.backend.repository;
 
 import com.pbl.backend.dto.response.AppointmentStatsDTO;
+import com.pbl.backend.dto.response.DoctorAppointmentStatsDTO;
 import com.pbl.backend.model.Appointment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,4 +35,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+    @Query("SELECT new com.pbl.backend.dto.response.DoctorAppointmentStatsDTO(d.userId, d.name, COUNT(a)) " +
+            "FROM Appointment a " +
+            "JOIN a.doctor d " +
+            "WHERE MONTH(a.time) = :month AND YEAR(a.time) = :year " +
+            "GROUP BY d.userId, d.name")
+    List<DoctorAppointmentStatsDTO> countAppointmentsByDoctorInMonth(@Param("month") int month,
+                                                                     @Param("year") int year);
 }
