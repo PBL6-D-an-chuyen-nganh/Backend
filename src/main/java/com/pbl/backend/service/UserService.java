@@ -6,17 +6,21 @@ import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.model.User;
 import com.pbl.backend.repository.CancellationLogRepository;
 import com.pbl.backend.repository.UserRepository;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,5 +153,23 @@ public class UserService {
         User user = getCurrentUser();
         cancellationLogRepo.deleteByCancelledBy(user);
         userRepo.delete(user);
+    }
+
+    public Page<UserDTO> searchUsers(String name, Pageable pageable) {
+        Specification<User> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.hasText(name)) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("name")),
+                        "%" + name.toLowerCase() + "%"
+                ));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<User> users = userRepo.findByRoleAndNameContainingIgnoreCase(User.Role.ROLE_USER, name, pageable);
+        return users.map(UserDTO::fromEntity);
     }
 }
