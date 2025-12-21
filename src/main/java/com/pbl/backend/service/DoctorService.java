@@ -234,7 +234,7 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots"}, allEntries = true)
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots",  "doctor_summaries", "doctors_by_specialty"}, allEntries = true)
     public void deleteDoctor(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
@@ -287,7 +287,7 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots", "doctor_summaries"}, allEntries = true)
+    @CacheEvict(value = {"doctors", "doctor_details", "doctor_slots", "doctor_summaries", "doctors_by_specialty"}, allEntries = true)
     public DoctorDTO reopenDoctorAccount(Long id) {
         doctorRepository.forceReopenUser(id);
 
