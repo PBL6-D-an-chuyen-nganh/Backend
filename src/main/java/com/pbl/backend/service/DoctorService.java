@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -205,7 +206,11 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = "doctors", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "doctors", allEntries = true),
+            @CacheEvict(value = "doctor_details", key = "#id"),
+            @CacheEvict(value = "doctor_slots", key = "#id")
+    })
     public DoctorDTO updateDoctor(Long id, DoctorEditRequestDTO request) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
@@ -253,7 +258,7 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = {"doctors", "doctor_details"}, allEntries = true)
+    @CacheEvict(value = "doctors", allEntries = true)
     public DoctorDTO updateCurrentDoctorProfile(DoctorProfileUpdateRequest request) {
         Doctor doctor = getCurrentDoctor();
 
@@ -264,7 +269,8 @@ public class DoctorService {
         if (request.getDegree() != null) doctor.setDegree(request.getDegree());
         if (request.getAchievements() != null) doctor.setAchievements(request.getAchievements());
 
-        return DoctorDTO.fromEntity(doctorRepository.save(doctor));
+        Doctor savedDoctor = doctorRepository.save(doctor);
+        return DoctorDTO.fromEntity(savedDoctor);
     }
 
     @Transactional

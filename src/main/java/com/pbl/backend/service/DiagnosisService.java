@@ -31,7 +31,6 @@ public class DiagnosisService {
     @CacheEvict(value = {
             "diagnoses",
             "patient_lists",
-            "doctor_slots",
             "appointments_by_creator",
             "appointments_by_doctor",
             "appointment_details"
