@@ -17,9 +17,11 @@ import com.pbl.backend.repository.ScheduleRepository;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,6 +44,10 @@ public class DoctorService {
     private final ScheduleRepository scheduleRepository;
     private final AppointmentRepository appointmentRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    @Lazy
+    private AppointmentService appointmentService;
 
     @Cacheable(value = "doctors", key = "#pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<DoctorDTO> getDoctors(Pageable pageable) {
@@ -231,6 +237,12 @@ public class DoctorService {
     public void deleteDoctor(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        System.out.println("Đang tiến hành huỷ lịch hẹn tương lai của bác sĩ ID: " + id);
+        if (appointmentService != null) {
+            appointmentService.cancelAllFutureAppointmentsForDoctor(id);
+        }
+
         doctor.setAuthStatus("DELETED");
 
         scheduleRepository.deleteByDoctor_UserIdAndWorkDateAfter(id, LocalDate.now());

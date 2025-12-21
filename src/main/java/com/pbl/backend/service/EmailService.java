@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
@@ -144,21 +145,17 @@ public class EmailService {
     }
 
     @Async
-    public void sendAppointmentDoctorCancellationEmail(Appointment appointment) {
-        String patientEmail = appointment.getPatient().getEmail();
+    public void sendAppointmentDoctorCancellationEmail(String patientEmail, String patientName, String doctorName, LocalDateTime time) {
+
         if (patientEmail == null || patientEmail.trim().isEmpty()) return;
 
-        logger.info("Đang gửi bác sĩ huỷ lịch ID: {}", appointment.getAppointmentID());
-
-        String patientName = appointment.getPatient().getName();
-        String doctorName = appointment.getDoctor().getName();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
-        String appointmentTime = appointment.getTime().format(formatter);
+        String appointmentTimeStr = time.format(formatter);
 
         String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px;'>"
                 + "<h1 style='color: #d9534f;'>Bác sĩ Huỷ Lịch hẹn</h1>"
                 + "<p>Xin chào <strong>" + patientName + "</strong>,</p>"
-                + "<p>Rất tiếc, bác sĩ <strong>" + doctorName + "</strong> đã huỷ lịch hẹn lúc <strong>" + appointmentTime + "</strong>.</p>"
+                + "<p>Rất tiếc, bác sĩ <strong>" + doctorName + "</strong> đã huỷ lịch hẹn lúc <strong>" + appointmentTimeStr + "</strong>.</p>"
                 + "<p>Vui lòng đặt lại lịch mới.</p>"
                 + "</div>";
 

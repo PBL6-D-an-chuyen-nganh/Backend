@@ -247,7 +247,11 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
         try {
-            emailService.sendAppointmentDoctorCancellationEmail(appointment);
+            String pEmail = appointment.getPatient().getEmail();
+            String pName = appointment.getPatient().getName();
+            String dName = appointment.getDoctor().getName();
+            LocalDateTime time = appointment.getTime();
+            emailService.sendAppointmentDoctorCancellationEmail(pEmail, pName, dName, time);
         } catch (Exception e) {
             System.err.println("Sắp xoá lịch hẹn ID: " + appointmentId + " nhưng gửi email huỷ thất bại: " + e.getMessage());
         }
@@ -279,6 +283,46 @@ public class AppointmentService {
         dto.setPatientInfo(patientDTO);
 
         return dto;
+    }
+
+    @Transactional
+    @CacheEvict(value = {
+            "appointments_by_creator",
+            "appointments_by_doctor",
+            "appointment_details",
+            "doctor_slots"
+    }, allEntries = true)
+    public void cancelAllFutureAppointmentsForDoctor(Long doctorId) {
+        List<Appointment> futureAppointments = appointmentRepository.findByDoctorUserIdAndTimeAfter(doctorId, LocalDateTime.now());
+
+        if (futureAppointments.isEmpty()) {
+            return;
+        }
+
+        User currentUser = userService.getCurrentUser();
+
+        for (Appointment appointment : futureAppointments) {
+            AppointmentCancellationLog log = AppointmentCancellationLog.builder()
+                    .appointmentIdRef(appointment.getAppointmentID())
+                    .appointmentTime(appointment.getTime())
+                    .doctorName(appointment.getDoctor().getName())
+                    .cancelledBy(currentUser)
+                    .build();
+            cancellationLogRepo.save(log);
+
+            String patientEmail = appointment.getPatient().getEmail();
+            String patientName = appointment.getPatient().getName();
+            String doctorName = appointment.getDoctor().getName();
+            LocalDateTime time = appointment.getTime();
+
+            try {
+                emailService.sendAppointmentDoctorCancellationEmail(patientEmail, patientName, doctorName, time);
+            } catch (Exception e) {
+                System.err.println("Lỗi gửi mail huỷ lịch ID " + appointment.getAppointmentID() + ": " + e.getMessage());
+            }
+
+            appointmentRepository.delete(appointment);
+        }
     }
 
 
