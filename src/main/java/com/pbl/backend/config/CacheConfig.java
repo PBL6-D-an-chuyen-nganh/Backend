@@ -6,7 +6,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import jakarta.annotation.PostConstruct; // Import thêm cái này
+import org.springframework.context.annotation.Primary;
+
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -14,26 +15,30 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 public class CacheConfig {
 
-    @PostConstruct
-    public void logConfigStatus() {
-        System.err.println("==================================================");
-        System.err.println("!!! [DEBUG] CACHE CONFIG IS LOADED SUCCESSFULY !!!");
-        System.err.println("==================================================");
-    }
-
     @Bean
+    @Primary
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(30, TimeUnit.MINUTES)
-                .maximumSize(10000)
+                .maximumSize(5000)
                 .recordStats());
 
         cacheManager.setCacheNames(Arrays.asList(
                 "appointments_by_creator", "appointments_by_doctor", "appointment_details",
-                "doctor_slots", "articles", "doctors", "doctor_details", "diagnoses", "patient_lists", "doctor_summaries",
-                "doctors_by_specialty"
+                "doctor_slots", "doctors", "doctor_details", "diagnoses", "patient_lists"
         ));
+        return cacheManager;
+    }
+
+    @Bean
+    public CacheManager permanentCacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+                .maximumSize(1000)
+                .recordStats());
+
+        cacheManager.setCacheNames(Arrays.asList("articles"));
         return cacheManager;
     }
 }
