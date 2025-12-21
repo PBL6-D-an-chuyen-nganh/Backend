@@ -14,7 +14,6 @@ import com.pbl.backend.model.User;
 import com.pbl.backend.repository.AppointmentRepository;
 import com.pbl.backend.repository.DoctorRepository;
 import com.pbl.backend.repository.ScheduleRepository;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import jakarta.persistence.criteria.Predicate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -79,9 +79,8 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
-
-    public Page<DoctorDTO> searchDoctors(String name, String degree, String position, Pageable pageable) {
-        Specification<Doctor> spec = (root, query, criteriaBuilder) -> {
+    private Specification<Doctor> buildSearchSpec(String name, String degree, String position) {
+        return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (StringUtils.hasText(name)) {
@@ -104,7 +103,17 @@ public class DoctorService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
 
+    public Page<DoctorSummaryDTO> searchDoctorSummaries(String name, String degree, String position, Pageable pageable) {
+        Specification<Doctor> spec = buildSearchSpec(name, degree, position);
+
+        Page<Doctor> doctors = doctorRepository.findAll(spec, pageable);
+
+        return doctors.map(DoctorSummaryDTO::fromEntity);
+    }
+    public Page<DoctorDTO> searchDoctors(String name, String degree, String position, Pageable pageable) {
+        Specification<Doctor> spec = buildSearchSpec(name, degree, position);
         Page<Doctor> doctors = doctorRepository.findAll(spec, pageable);
         return doctors.map(DoctorDTO::fromEntity);
     }

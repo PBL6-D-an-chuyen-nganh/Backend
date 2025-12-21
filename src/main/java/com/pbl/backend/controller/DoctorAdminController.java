@@ -57,7 +57,7 @@ public class DoctorAdminController {
     }
 
     @GetMapping("/search-filter")
-    public ResponseEntity<PagedResponse<DoctorDTO>> searchDoctors(
+    public ResponseEntity<PagedResponse<DoctorSummaryDTO>> searchDoctors(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "userId") String sortBy,
@@ -73,9 +73,9 @@ public class DoctorAdminController {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<DoctorDTO> doctors = doctorService.searchDoctors(name, degree, position, pageable);
+        Page<DoctorSummaryDTO> doctors = doctorService.searchDoctorSummaries(name, degree, position, pageable);
 
-        PagedResponse<DoctorDTO> response = new PagedResponse<>(
+        PagedResponse<DoctorSummaryDTO> response = new PagedResponse<>(
                 doctors.getContent(),
                 doctors.getNumber(),
                 doctors.getSize(),

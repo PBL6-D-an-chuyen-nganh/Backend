@@ -1,6 +1,5 @@
 package com.pbl.backend.controller;
 
-import com.pbl.backend.dto.response.DoctorDTO;
 import com.pbl.backend.dto.response.PagedResponse;
 import com.pbl.backend.dto.response.UserDTO;
 import com.pbl.backend.service.UserService;
