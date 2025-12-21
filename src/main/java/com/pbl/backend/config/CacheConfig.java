@@ -26,7 +26,8 @@ public class CacheConfig {
 
         cacheManager.setCacheNames(Arrays.asList(
                 "appointments_by_creator", "appointments_by_doctor", "appointment_details",
-                "doctor_slots", "doctors", "doctor_details", "diagnoses", "patient_lists"
+                "doctor_slots", "doctors", "doctor_details", "diagnoses", "patient_lists",
+                "doctors_by_specialty", "doctor_summaries"
         ));
         return cacheManager;
     }

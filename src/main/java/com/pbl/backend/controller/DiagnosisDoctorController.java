@@ -7,7 +7,6 @@ import com.pbl.backend.dto.response.PatientListDTO;
 import com.pbl.backend.service.DiagnosisService;
 import com.pbl.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/doctor/diagnoses")
 @RequiredArgsConstructor
-@Slf4j
 public class DiagnosisDoctorController {
 
 
@@ -48,20 +46,11 @@ public class DiagnosisDoctorController {
     public ResponseEntity<List<DiagnosisListDTO>> getDiagnosesByDoctorAndDate(
             @RequestParam(required = false) LocalDate date) {
 
-        log.info("Received request to get diagnoses list. Date param: {}", date);
-
         if (date == null) {
             date = LocalDate.now();
         }
         Long doctorUserId = userService.getCurrentUserId();
         List<DiagnosisListDTO> diagnosesList = diagnosisService.getDiagnosesByDoctorIdAndDate(doctorUserId, date);
-        if (!diagnosesList.isEmpty()) {
-            log.info("Found {} diagnoses. First diagnosis date: {}",
-                    diagnosesList.size(),
-                    diagnosesList.get(0).getDateOfDiagnosis());
-        } else {
-            log.info("No diagnoses found for doctor ID: {} on date: {}", doctorUserId, date);
-        }
         return ResponseEntity.ok(diagnosesList);
     }
 
